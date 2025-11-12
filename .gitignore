@@ -1,0 +1,8 @@
+node_modules
+.turbo
+.env
+.next
+dist
+*.sqlite
+.cursor
+.vscode
