@@ -1,0 +1,110 @@
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Room } from './entities/room.entity';
+import { RoomCategory } from './entities/room-category.entity';
+import { CreateRoomDto } from './dto/create-room.dto';
+import { UpdateRoomDto } from './dto/update-room.dto';
+import { RoomCondition } from '@turborepo/shared';
+
+@Injectable()
+export class RoomsService {
+  constructor(
+    @InjectRepository(Room)
+    private roomsRepository: Repository<Room>,
+    @InjectRepository(RoomCategory)
+    private categoriesRepository: Repository<RoomCategory>,
+  ) {}
+
+  async findAll(condition?: RoomCondition, categoryId?: number): Promise<Room[]> {
+    const query = this.roomsRepository
+      .createQueryBuilder('room')
+      .leftJoinAndSelect('room.category', 'category');
+
+    if (condition) {
+      query.andWhere('room.condition = :condition', { condition });
+    }
+
+    if (categoryId) {
+      query.andWhere('room.category.id = :categoryId', { categoryId });
+    }
+
+    return query.getMany();
+  }
+
+  async findById(id: number): Promise<Room> {
+    const room = await this.roomsRepository.findOne({
+      where: { id },
+      relations: ['category', 'category.features'],
+    });
+    if (!room) {
+      throw new NotFoundException(`Room with ID ${id} not found`);
+    }
+    return room;
+  }
+
+  async findByNumber(number: string): Promise<Room | null> {
+    return this.roomsRepository.findOne({ where: { number } });
+  }
+
+  async create(createRoomDto: CreateRoomDto): Promise<Room> {
+    const existingRoom = await this.findByNumber(createRoomDto.number);
+    if (existingRoom) {
+      throw new ConflictException(`Room with number ${createRoomDto.number} already exists`);
+    }
+
+    const category = await this.categoriesRepository.findOne({
+      where: { id: createRoomDto.categoryId },
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${createRoomDto.categoryId} not found`);
+    }
+
+    const room = this.roomsRepository.create({
+      number: createRoomDto.number,
+      condition: createRoomDto.condition || RoomCondition.CLEAN,
+      category,
+    });
+
+    return this.roomsRepository.save(room);
+  }
+
+  async update(id: number, updateRoomDto: UpdateRoomDto): Promise<Room> {
+    const room = await this.findById(id);
+
+    if (updateRoomDto.number && updateRoomDto.number !== room.number) {
+      const existingRoom = await this.findByNumber(updateRoomDto.number);
+      if (existingRoom) {
+        throw new ConflictException(`Room with number ${updateRoomDto.number} already exists`);
+      }
+      room.number = updateRoomDto.number;
+    }
+
+    if (updateRoomDto.condition) {
+      room.condition = updateRoomDto.condition;
+    }
+
+    if (updateRoomDto.categoryId) {
+      const category = await this.categoriesRepository.findOne({
+        where: { id: updateRoomDto.categoryId },
+      });
+      if (!category) {
+        throw new NotFoundException(`Category with ID ${updateRoomDto.categoryId} not found`);
+      }
+      room.category = category;
+    }
+
+    return this.roomsRepository.save(room);
+  }
+
+  async remove(id: number): Promise<void> {
+    const room = await this.findById(id);
+    await this.roomsRepository.remove(room);
+  }
+
+  async updateCondition(id: number, condition: RoomCondition): Promise<Room> {
+    const room = await this.findById(id);
+    room.condition = condition;
+    return this.roomsRepository.save(room);
+  }
+}

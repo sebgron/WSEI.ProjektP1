@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter, AllExceptionsFilter } from './common/filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,9 @@ async function bootstrap() {
     origin: 'http://localhost:3001', // Frontend URL
     credentials: true,
   });
+
+  // Global exception filters
+  app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
   // Enable validation
   app.useGlobalPipes(
@@ -29,3 +33,4 @@ async function bootstrap() {
   );
 }
 bootstrap();
+
