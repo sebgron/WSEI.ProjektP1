@@ -1,41 +1,43 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
-  RECEPTION = 'RECEPTION',
-  SERVICES = 'SERVICES',
-  CUSTOMER = 'CUSTOMER',
+  STAFF = 'STAFF',
+  USER = 'USER',
 }
 
-export enum ReservationStatus {
+export enum BookingStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
-  PREPARING = 'PREPARING',
-  READY = 'READY',
+  CANCELLED = 'CANCELLED',
   CHECKED_IN = 'CHECKED_IN',
-  CHECKED_OUT = 'CHECKED_OUT',
-  CANCELLED = 'CANCELLED'
+  COMPLETED = 'COMPLETED',
+}
+
+export enum PaymentStatus {
+  UNPAID = 'UNPAID',
+  PAID = 'PAID',
 }
 
 export enum RoomCondition {
   CLEAN = 'CLEAN',
   DIRTY = 'DIRTY',
-  IN_MAINTENANCE = 'MAINTENANCE'
+  IN_MAINTENANCE = 'MAINTENANCE',
 }
 
 export enum TaskType {
   CLEANING = 'CLEANING',
   REPAIR = 'REPAIR',
-  AMENITY_REFILL = 'REFILL'
+  AMENITY_REFILL = 'REFILL',
 }
 
 export enum TaskStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
-  DONE = 'DONE'
+  DONE = 'DONE',
 }
 
 export interface RoomFeatureDTO {
   id: number;
-  name: string;     
-  icon: string;      
-  isActive: boolean; 
+  name: string;
+  icon: string;
+  isActive: boolean;
 }

@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ServiceTask } from './service-task.entity';
+import { ServiceTask } from './entities/service-task.entity';
 import { Room } from '../rooms/entities/room.entity';
-import { User } from '../users/user.entity';
+import { User } from '../users/entities/user.entity';
+import { EmployeeProfile } from '../staff/entities/employee-profile.entity';
 import { CreateServiceTaskDto } from './dto/create-service-task.dto';
 import { UpdateServiceTaskDto } from './dto/update-service-task.dto';
 import { TaskStatus, TaskType, RoomCondition, UserRole } from '@turborepo/shared';
@@ -17,6 +18,8 @@ export class ServiceTasksService {
     private roomsRepository: Repository<Room>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(EmployeeProfile)
+    private employeeProfileRepository: Repository<EmployeeProfile>,
   ) {}
 
   async findAll(
@@ -62,8 +65,8 @@ export class ServiceTasksService {
     return task;
   }
 
-  async findMyTasks(userId: string): Promise<ServiceTask[]> {
-    return this.findAll(undefined, userId);
+  async findMyTasks(employeeProfileId: string): Promise<ServiceTask[]> {
+    return this.findAll(undefined, employeeProfileId);
   }
 
   async create(createDto: CreateServiceTaskDto): Promise<ServiceTask> {
@@ -115,16 +118,24 @@ export class ServiceTasksService {
   async assignWorker(taskId: number, userId: string): Promise<ServiceTask> {
     const task = await this.findById(taskId);
 
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    // Find user and verify they have STAFF or ADMIN role
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['employeeProfile'],
+    });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    if (user.role !== UserRole.SERVICES && user.role !== UserRole.ADMIN) {
-      throw new BadRequestException('User must have SERVICES or ADMIN role to be assigned tasks');
+    if (user.role !== UserRole.STAFF && user.role !== UserRole.ADMIN) {
+      throw new BadRequestException('User must have STAFF or ADMIN role to be assigned tasks');
     }
 
-    task.assignedTo = user;
+    if (!user.employeeProfile) {
+      throw new BadRequestException('User must have an employee profile to be assigned tasks');
+    }
+
+    task.assignedTo = user.employeeProfile;
     return this.tasksRepository.save(task);
   }
 

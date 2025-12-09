@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
-import { Room } from '../rooms/entities/room.entity';
-import { User } from '../users/user.entity';
+import { Room } from '../../rooms/entities/room.entity';
+import { EmployeeProfile } from '../../staff/entities/employee-profile.entity';
 import { TaskStatus, TaskType } from '@turborepo/shared';
 
 @Entity()
@@ -28,8 +28,9 @@ export class ServiceTask {
   @ManyToOne(() => Room, (room) => room.tasks)
   room: Room;
 
-  @ManyToOne(() => User, (user) => user.assignedTasks, { nullable: true })
-  assignedTo: User;
+  // Changed from User to EmployeeProfile - tasks are assigned to employees
+  @ManyToOne(() => EmployeeProfile, { nullable: true })
+  assignedTo: EmployeeProfile;
 
   @CreateDateColumn()
   createdAt: Date;

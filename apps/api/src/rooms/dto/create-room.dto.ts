@@ -12,4 +12,8 @@ export class CreateRoomDto {
 
   @IsNumber()
   categoryId: number;
+
+  @IsNumber()
+  @IsOptional()
+  accessConfigId?: number;
 }

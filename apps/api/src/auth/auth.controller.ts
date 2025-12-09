@@ -39,7 +39,11 @@ export class AuthController {
     if (!user) {
       throw new Error('User not found');
     }
-    const { password, ...result } = user;
-    return result;
+    const { passwordHash, ...result } = user;
+    return {
+      ...result,
+      firstName: user.guestProfile?.firstName || user.employeeProfile?.firstName,
+      lastName: user.guestProfile?.lastName || user.employeeProfile?.lastName,
+    };
   }
 }

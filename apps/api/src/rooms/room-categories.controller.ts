@@ -14,7 +14,7 @@ import { CreateRoomCategoryDto } from './dto/create-room-category.dto';
 import { UpdateRoomCategoryDto } from './dto/update-room-category.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('room-categories')
+@Controller('rooms/categories')
 @UseGuards(JwtAuthGuard)
 export class RoomCategoriesController {
   constructor(private readonly categoriesService: RoomCategoriesService) {}

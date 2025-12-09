@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './entities/room.entity';
 import { RoomCategory } from './entities/room-category.entity';
+import { AccessConfiguration } from '../access-configs/entities/access-config.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { RoomCondition } from '@turborepo/shared';
@@ -14,12 +15,15 @@ export class RoomsService {
     private roomsRepository: Repository<Room>,
     @InjectRepository(RoomCategory)
     private categoriesRepository: Repository<RoomCategory>,
+    @InjectRepository(AccessConfiguration)
+    private accessConfigRepository: Repository<AccessConfiguration>,
   ) {}
 
   async findAll(condition?: RoomCondition, categoryId?: number): Promise<Room[]> {
     const query = this.roomsRepository
       .createQueryBuilder('room')
-      .leftJoinAndSelect('room.category', 'category');
+      .leftJoinAndSelect('room.category', 'category')
+      .leftJoinAndSelect('room.accessConfig', 'accessConfig');
 
     if (condition) {
       query.andWhere('room.condition = :condition', { condition });
@@ -35,7 +39,7 @@ export class RoomsService {
   async findById(id: number): Promise<Room> {
     const room = await this.roomsRepository.findOne({
       where: { id },
-      relations: ['category', 'category.features'],
+      relations: ['category', 'category.features', 'accessConfig'],
     });
     if (!room) {
       throw new NotFoundException(`Room with ID ${id} not found`);
@@ -60,10 +64,21 @@ export class RoomsService {
       throw new NotFoundException(`Category with ID ${createRoomDto.categoryId} not found`);
     }
 
+    let accessConfig: AccessConfiguration | null = null;
+    if (createRoomDto.accessConfigId) {
+      accessConfig = await this.accessConfigRepository.findOne({
+        where: { id: createRoomDto.accessConfigId },
+      });
+      if (!accessConfig) {
+        throw new NotFoundException(`Access config with ID ${createRoomDto.accessConfigId} not found`);
+      }
+    }
+
     const room = this.roomsRepository.create({
       number: createRoomDto.number,
       condition: createRoomDto.condition || RoomCondition.CLEAN,
       category,
+      accessConfig,
     });
 
     return this.roomsRepository.save(room);
@@ -92,6 +107,21 @@ export class RoomsService {
         throw new NotFoundException(`Category with ID ${updateRoomDto.categoryId} not found`);
       }
       room.category = category;
+    }
+
+    // Handle accessConfigId (can be set to null to remove config)
+    if (updateRoomDto.accessConfigId !== undefined) {
+      if (updateRoomDto.accessConfigId === null) {
+        room.accessConfig = null;
+      } else {
+        const accessConfig = await this.accessConfigRepository.findOne({
+          where: { id: updateRoomDto.accessConfigId },
+        });
+        if (!accessConfig) {
+          throw new NotFoundException(`Access config with ID ${updateRoomDto.accessConfigId} not found`);
+        }
+        room.accessConfig = accessConfig;
+      }
     }
 
     return this.roomsRepository.save(room);

@@ -13,4 +13,8 @@ export class UpdateRoomDto {
   @IsNumber()
   @IsOptional()
   categoryId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  accessConfigId?: number | null;
 }
