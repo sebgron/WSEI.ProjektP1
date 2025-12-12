@@ -4,9 +4,7 @@ import { Repository } from 'typeorm';
 import { Room } from './entities/room.entity';
 import { RoomCategory } from './entities/room-category.entity';
 import { AccessConfiguration } from '../access-configs/entities/access-config.entity';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
-import { RoomCondition } from '@turborepo/shared';
+import { CreateRoomDto, UpdateRoomDto, RoomCondition } from '@turborepo/shared';
 
 @Injectable()
 export class RoomsService {

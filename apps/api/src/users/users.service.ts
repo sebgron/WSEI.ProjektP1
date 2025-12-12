@@ -5,9 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from './entities/user.entity';
 import { GuestProfile } from '../guests/entities/guest-profile.entity';
 import { EmployeeProfile } from '../staff/entities/employee-profile.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRole } from '@turborepo/shared';
+import { CreateUserDto, UpdateUserDto, UserRole } from '@turborepo/shared';
 
 @Injectable()
 export class UsersService {

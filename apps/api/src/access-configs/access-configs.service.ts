@@ -5,8 +5,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccessConfiguration } from './entities/access-config.entity';
-import { CreateAccessConfigDto } from './dto/create-access-config.dto';
-import { UpdateAccessConfigDto } from './dto/update-access-config.dto';
+import { CreateAccessConfigDto, UpdateAccessConfigDto } from '@turborepo/shared';
 
 @Injectable()
 export class AccessConfigsService {

@@ -6,8 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GuestProfile } from './entities/guest-profile.entity';
-import { CreateGuestProfileDto } from './dto/create-guest-profile.dto';
-import { UpdateGuestProfileDto } from './dto/update-guest-profile.dto';
+import { CreateGuestProfileDto, UpdateGuestProfileDto } from '@turborepo/shared';
 
 @Injectable()
 export class GuestsService {

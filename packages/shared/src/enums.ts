@@ -1,3 +1,4 @@
+// Enums
 export enum UserRole {
   ADMIN = 'ADMIN',
   STAFF = 'STAFF',
@@ -35,6 +36,14 @@ export enum TaskStatus {
   DONE = 'DONE',
 }
 
+export enum ReservationStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+}
+
+// Interfaces
 export interface RoomFeatureDTO {
   id: number;
   name: string;

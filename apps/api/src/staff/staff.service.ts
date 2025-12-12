@@ -8,9 +8,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { EmployeeProfile } from './entities/employee-profile.entity';
 import { User } from '../users/entities/user.entity';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
-import { UserRole } from '@turborepo/shared';
+import { CreateEmployeeDto, UpdateEmployeeDto, UserRole } from '@turborepo/shared';
 
 @Injectable()
 export class StaffService {

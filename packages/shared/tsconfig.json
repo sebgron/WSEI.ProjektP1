@@ -10,10 +10,14 @@
         "declarationMap": true,
         "sourceMap": true,
         "strict": true,
+        "strictPropertyInitialization": false,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "outDir": "./dist",
+        "rootDir": "./src",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     },
     "exclude": [
         "node_modules",

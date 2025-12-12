@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { PaymentStatus } from '@turborepo/shared';
+import { PaymentStatus } from '../../enums';
 
 export class UpdatePaymentStatusDto {
   @IsEnum(PaymentStatus)

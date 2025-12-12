@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { TaskStatus } from '@turborepo/shared';
+import { TaskStatus } from '../../enums';
 
 export class UpdateTaskStatusDto {
   @IsEnum(TaskStatus)

@@ -11,8 +11,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CreateEmployeeDto, UpdateEmployeeDto } from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('staff')

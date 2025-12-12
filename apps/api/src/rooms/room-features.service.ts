@@ -2,8 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoomFeature } from './entities/room-feature.entity';
-import { CreateRoomFeatureDto } from './dto/create-room-feature.dto';
-import { UpdateRoomFeatureDto } from './dto/update-room-feature.dto';
+import { CreateRoomFeatureDto, UpdateRoomFeatureDto } from '@turborepo/shared';
 
 @Injectable()
 export class RoomFeaturesService {

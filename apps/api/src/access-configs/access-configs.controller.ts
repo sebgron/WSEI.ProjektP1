@@ -10,8 +10,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { AccessConfigsService } from './access-configs.service';
-import { CreateAccessConfigDto } from './dto/create-access-config.dto';
-import { UpdateAccessConfigDto } from './dto/update-access-config.dto';
+import { CreateAccessConfigDto, UpdateAccessConfigDto } from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('access-configs')

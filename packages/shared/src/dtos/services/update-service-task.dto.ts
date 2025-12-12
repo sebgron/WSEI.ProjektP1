@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { TaskType, TaskStatus } from '@turborepo/shared';
+import { TaskType, TaskStatus } from '../../enums';
 
 export class UpdateServiceTaskDto {
   @IsEnum(TaskType)

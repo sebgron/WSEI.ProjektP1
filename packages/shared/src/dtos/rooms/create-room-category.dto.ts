@@ -19,5 +19,5 @@ export class CreateRoomCategoryDto {
 
   @IsArray()
   @IsNumber({}, { each: true })
-  featureIds: number[]; 
+  featureIds: number[];
 }

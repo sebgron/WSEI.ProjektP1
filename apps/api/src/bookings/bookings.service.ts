@@ -9,11 +9,14 @@ import { Booking } from './entities/booking.entity';
 import { BookingRoom } from './entities/booking-room.entity';
 import { Room } from '../rooms/entities/room.entity';
 import { GuestProfile } from '../guests/entities/guest-profile.entity';
-import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
-import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
-import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
-import { BookingStatus, PaymentStatus } from '@turborepo/shared';
+import {
+  CreateBookingDto,
+  UpdateBookingDto,
+  UpdateBookingStatusDto,
+  UpdatePaymentStatusDto,
+  BookingStatus,
+  PaymentStatus,
+} from '@turborepo/shared';
 
 @Injectable()
 export class BookingsService {
@@ -29,10 +32,14 @@ export class BookingsService {
   ) {}
 
   private generateBookingReference(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = 'WSEI-';
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    let code = '';
     for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    for (let i = 0; i < 4; i++) {
+      code += digits.charAt(Math.floor(Math.random() * digits.length));
     }
     return code;
   }

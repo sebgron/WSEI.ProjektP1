@@ -12,12 +12,15 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ServiceTasksService } from './service-tasks.service';
-import { CreateServiceTaskDto } from './dto/create-service-task.dto';
-import { UpdateServiceTaskDto } from './dto/update-service-task.dto';
-import { AssignTaskDto } from './dto/assign-task.dto';
-import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import {
+  CreateServiceTaskDto,
+  UpdateServiceTaskDto,
+  UpdateTaskStatusDto,
+  AssignTaskDto,
+  TaskStatus,
+} from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { TaskStatus, TaskType } from '@turborepo/shared';
+import { TaskType } from '@turborepo/shared';
 
 @Controller('service-tasks')
 @UseGuards(JwtAuthGuard)

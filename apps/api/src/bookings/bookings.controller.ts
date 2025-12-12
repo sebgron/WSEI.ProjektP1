@@ -12,12 +12,15 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
-import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
-import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
+import {
+  CreateBookingDto,
+  UpdateBookingDto,
+  UpdateBookingStatusDto,
+  UpdatePaymentStatusDto,
+  BookingStatus,
+  PaymentStatus,
+} from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { BookingStatus } from '@turborepo/shared';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)

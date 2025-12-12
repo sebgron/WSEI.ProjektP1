@@ -5,9 +5,16 @@ import { ServiceTask } from './entities/service-task.entity';
 import { Room } from '../rooms/entities/room.entity';
 import { User } from '../users/entities/user.entity';
 import { EmployeeProfile } from '../staff/entities/employee-profile.entity';
-import { CreateServiceTaskDto } from './dto/create-service-task.dto';
-import { UpdateServiceTaskDto } from './dto/update-service-task.dto';
-import { TaskStatus, TaskType, RoomCondition, UserRole } from '@turborepo/shared';
+import {
+  CreateServiceTaskDto,
+  UpdateServiceTaskDto,
+  UpdateTaskStatusDto,
+  AssignTaskDto,
+  TaskStatus,
+  TaskType,
+  RoomCondition,
+  UserRole,
+} from '@turborepo/shared';
 
 @Injectable()
 export class ServiceTasksService {

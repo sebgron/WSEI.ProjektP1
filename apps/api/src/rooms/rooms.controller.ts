@@ -11,10 +11,8 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoomCondition } from '@turborepo/shared';
+import { CreateRoomDto, UpdateRoomDto, RoomCondition } from '@turborepo/shared';
 
 @Controller('rooms')
 @UseGuards(JwtAuthGuard)

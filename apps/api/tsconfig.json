@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@turborepo/shared": [
-        "../../packages/shared/index.ts"
+        "../../packages/shared/src/index.ts"
       ]
     }
   }

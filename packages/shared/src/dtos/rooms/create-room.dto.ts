@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsNumber, IsEnum, IsOptional } from 'class-validator';
-import { RoomCondition } from '@turborepo/shared';
+import { RoomCondition } from '../../enums';
 
 export class CreateRoomDto {
   @IsString()

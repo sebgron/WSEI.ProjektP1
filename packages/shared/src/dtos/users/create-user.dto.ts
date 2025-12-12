@@ -1,5 +1,5 @@
 import { IsString, IsEmail, IsNotEmpty, IsEnum, IsOptional, MinLength } from 'class-validator';
-import { UserRole } from '@turborepo/shared';
+import { UserRole } from '../../enums';
 
 export class CreateUserDto {
   @IsEmail()

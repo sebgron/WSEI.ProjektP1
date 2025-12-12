@@ -11,8 +11,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { GuestsService } from './guests.service';
-import { CreateGuestProfileDto } from './dto/create-guest-profile.dto';
-import { UpdateGuestProfileDto } from './dto/update-guest-profile.dto';
+import { CreateGuestProfileDto, UpdateGuestProfileDto } from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('guests')

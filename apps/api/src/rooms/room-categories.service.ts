@@ -3,8 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { RoomCategory } from './entities/room-category.entity';
 import { RoomFeature } from './entities/room-feature.entity';
-import { CreateRoomCategoryDto } from './dto/create-room-category.dto';
-import { UpdateRoomCategoryDto } from './dto/update-room-category.dto';
+import { CreateRoomCategoryDto, UpdateRoomCategoryDto } from '@turborepo/shared';
 
 @Injectable()
 export class RoomCategoriesService {

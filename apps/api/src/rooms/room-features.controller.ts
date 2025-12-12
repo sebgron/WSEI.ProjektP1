@@ -11,9 +11,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { RoomFeaturesService } from './room-features.service';
-import { CreateRoomFeatureDto } from './dto/create-room-feature.dto';
-import { UpdateRoomFeatureDto } from './dto/update-room-feature.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateRoomFeatureDto, UpdateRoomFeatureDto } from '@turborepo/shared';
 
 @Controller('room-features')
 @UseGuards(JwtAuthGuard)

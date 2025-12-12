@@ -5,9 +5,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../users/entities/user.entity';
 import { GuestProfile } from '../guests/entities/guest-profile.entity';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { UserRole } from '@turborepo/shared';
+import { LoginDto, RegisterDto, UserRole } from '@turborepo/shared';
 
 @Injectable()
 export class AuthService {
