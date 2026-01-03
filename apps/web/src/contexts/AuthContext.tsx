@@ -2,14 +2,17 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { authAPI, User, LoginData } from '@/lib/api';
+import { authAPI, User, LoginData, GuestLoginData } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (credentials: LoginData) => Promise<void>;
+  guestLogin: (credentials: GuestLoginData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isStaff: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'ADMIN';
+  const isStaff = user?.role === 'STAFF';
 
   useEffect(() => {
     const initAuth = async () => {
@@ -29,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData);
         } catch {
           Cookies.remove('token');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -47,17 +53,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const guestLogin = async (credentials: GuestLoginData) => {
+    try {
+      const response = await authAPI.guestLogin(credentials);
+      Cookies.set('token', response.access_token, { expires: 1 });
+      setUser(response.user);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const logout = () => {
     Cookies.remove('token');
+    // Also remove Authentication cookie if used in older code
+    Cookies.remove('Authentication');
     setUser(null);
+    // Optional: Redirect to login handled by components or router
+    // window.location.href = '/login'; 
   };
 
   const value = {
     user,
     loading,
     login,
+    guestLogin,
     logout,
     isAuthenticated,
+    isAdmin,
+    isStaff
   };
 
   return (

@@ -17,11 +17,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(identifier: string, password: string): Promise<any> {
     const user = await this.userRepository.findOne({
-      where: { email },
+      where: [
+        { email: identifier },
+        { username: identifier }
+      ],
       select: ['id', 'email', 'passwordHash', 'role'],
-      relations: ['guestProfile'],
+      relations: ['guestProfile', 'employeeProfile'],
     });
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
       const { passwordHash, ...result } = user;

@@ -1,70 +1,90 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import { IUserResponse, IAuthResponse, ILoginData, IRegisterData, GuestLoginDto } from '@turborepo/shared';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-});
+// Re-export types
+export type User = IUserResponse;
+export type AuthResponse = IAuthResponse;
+export type LoginData = ILoginData;
+export type RegisterData = IRegisterData;
+export type GuestLoginData = GuestLoginDto;
 
-api.interceptors.request.use((config) => {
-  const token = Cookies.get("token");
+type FetchOptions = RequestInit & {
+  headers?: Record<string, string>;
+};
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+export async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const token = getCookie('Authentication') || getCookie('accessToken') || getCookie('token');
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
-  return config;
-});
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      Cookies.remove("token");
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
+  // Usuwamy początkowy slash, żeby uniknąć podwójnych //
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+
+  try {
+    const response = await fetch(`${API_URL}/${cleanEndpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (response.status === 401) {
+      console.warn("Unauthorized - Token expired or invalid");
     }
-    return Promise.reject(error);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `API Error: ${response.status}`);
+    }
+
+    if (response.status === 204) return {} as T;
+
+    return response.json();
+  } catch (error) {
+    console.error("API Request Failed:", error);
+    throw error;
   }
-);
-
-export interface User {
-  id: number;
-  email: string;
-  firstName?: string;
-  lastName?: string;
 }
 
-export interface AuthResponse {
-  access_token: string;
-  user: User;
-}
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData extends LoginData {
-  firstName?: string;
-  lastName?: string;
-}
+// ============= AUTH API =============
 
 export const authAPI = {
   login: async (credentials: LoginData): Promise<AuthResponse> => {
-    const response = await api.post("/auth/login", credentials);
-    return response.data;
+    return apiFetch<AuthResponse>('auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  guestLogin: async (credentials: GuestLoginData): Promise<AuthResponse> => {
+    return apiFetch<AuthResponse>('auth/guest-login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+    });
   },
 
   register: async (userData: RegisterData): Promise<User> => {
-    const response = await api.post("/auth/register", userData);
-    return response.data;
+    return apiFetch<User>('auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
   },
 
   me: async (): Promise<User> => {
-    const response = await api.get("/auth/me");
-    return response.data;
+    return apiFetch<User>('auth/me');
   },
 };
