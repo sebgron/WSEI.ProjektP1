@@ -69,8 +69,9 @@ export class ServiceTasksController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() statusDto: UpdateTaskStatusDto,
+    @Request() req,
   ) {
-    return this.tasksService.updateStatus(id, statusDto.status);
+    return this.tasksService.updateStatus(id, statusDto.status, req.user?.id);
   }
 
   @Patch(':id/assign')

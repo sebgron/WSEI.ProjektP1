@@ -1,19 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Hotel, LogOut, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Hotel, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 
 export default function GuestLayout({
@@ -21,7 +12,6 @@ export default function GuestLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const pathname = usePathname();
     const { logout, user } = useAuth();
     const router = useRouter();
 
@@ -31,72 +21,40 @@ export default function GuestLayout({
         router.push('/login');
     };
 
-    const getInitials = (firstName?: string, lastName?: string) => {
-        return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || 'G';
-    };
+    const userName = user?.guestProfile?.firstName || user?.email?.split('@')[0] || 'Gość';
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <header className="sticky top-0 z-10 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <Link href="/guest/my-bookings" className="flex items-center gap-2 font-bold text-xl">
-                            <Hotel className="w-6 h-6 text-primary" />
-                            <span>Hotel Management System</span>
+        <div className="min-h-screen flex flex-col bg-muted/30">
+            <header className="sticky top-0 z-10 w-full bg-background border-b">
+                <div className="max-w-lg mx-auto px-4">
+                    <div className="flex h-14 items-center justify-between">
+                        <Link href="/guest/my-bookings" className="flex items-center gap-2 font-semibold text-primary">
+                            <Hotel className="h-5 w-5" />
+                            <span>Moje Pobyty</span>
                         </Link>
 
-                        <nav className="hidden md:flex gap-4">
-                            <Link
-                                href="/guest/my-bookings"
-                                className={`text-sm font-medium transition-colors hover:text-primary ${pathname === '/guest/my-bookings' ? 'text-foreground' : 'text-muted-foreground'
-                                    }`}
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 text-sm">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="w-4 h-4 text-primary" />
+                                </div>
+                                <span className="font-medium hidden sm:inline">{userName}</span>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleLogout}
+                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                             >
-                                Moje Rezerwacje
-                            </Link>
-                        </nav>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground hidden sm:inline-block">
-                            Witaj, {user?.guestProfile?.firstName || 'Gościu'}
-                        </span>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarFallback>{getInitials(user?.guestProfile?.firstName, user?.guestProfile?.lastName)}</AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user?.guestProfile?.firstName} {user?.guestProfile?.lastName}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user?.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/guest/my-bookings">
-                                        <Calendar className="mr-2 h-4 w-4" />
-                                        <span>Moje Rezerwacje</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Wyloguj się</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                <LogOut className="h-4 w-4" />
+                                <span className="ml-2 hidden sm:inline">Wyloguj</span>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 lg:p-8">
+            <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
                 {children}
             </main>
         </div>

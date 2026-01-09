@@ -9,13 +9,19 @@ import { Booking } from './entities/booking.entity';
 import { BookingRoom } from './entities/booking-room.entity';
 import { Room } from '../rooms/entities/room.entity';
 import { GuestProfile } from '../guests/entities/guest-profile.entity';
+import { ServiceTask } from '../services/entities/service-task.entity';
 import {
   CreateBookingDto,
   UpdateBookingDto,
   UpdateBookingStatusDto,
   UpdatePaymentStatusDto,
+  ReportIssueDto,
   BookingStatus,
   PaymentStatus,
+  TaskType,
+  TaskPriority,
+  TaskStatus,
+  PublicBookingDto,
 } from '@turborepo/shared';
 
 @Injectable()
@@ -29,6 +35,8 @@ export class BookingsService {
     private roomsRepository: Repository<Room>,
     @InjectRepository(GuestProfile)
     private guestProfileRepository: Repository<GuestProfile>,
+    @InjectRepository(ServiceTask)
+    private serviceTaskRepository: Repository<ServiceTask>,
   ) {}
 
   private generateBookingReference(): string {
@@ -88,6 +96,62 @@ export class BookingsService {
       throw new NotFoundException(`Booking with reference ${reference} not found`);
     }
     return booking;
+  }
+
+  async createPublic(dto: PublicBookingDto) {
+    let guest = await this.guestProfileRepository.findOne({
+      where: { email: dto.guest.email },
+    });
+
+    if (!guest) {
+      guest = this.guestProfileRepository.create({
+        firstName: dto.guest.firstName,
+        lastName: dto.guest.lastName,
+        email: dto.guest.email,
+        phoneNumber: dto.guest.phoneNumber,
+        addressStreet: dto.guest.addressStreet,
+        city: dto.guest.city,
+        zipCode: dto.guest.zipCode,
+        country: dto.guest.country,
+      });
+      guest = await this.guestProfileRepository.save(guest);
+    }
+
+    const booking = this.bookingsRepository.create({
+      bookingReference: this.generateBookingReference(),
+      checkInDate: new Date(dto.checkInDate),
+      checkOutDate: new Date(dto.checkOutDate),
+      guest,
+      nightsCount: Math.ceil((new Date(dto.checkOutDate).getTime() - new Date(dto.checkInDate).getTime()) / (1000 * 60 * 60 * 24)),
+      totalPrice: dto.totalPrice,
+      status: BookingStatus.PENDING,
+      paymentStatus: PaymentStatus.UNPAID,
+    });
+
+    const savedBooking = await this.bookingsRepository.save(booking);
+
+    if (dto.roomSelection) {
+        for (const [categoryIdStr, count] of Object.entries(dto.roomSelection)) {
+           const categoryId = Number(categoryIdStr);
+           const rooms = await this.roomsRepository.createQueryBuilder('room')
+             .where('room.categoryId = :categoryId', { categoryId })
+             .getMany();
+           
+           let assigned = 0;
+           for (const room of rooms) {
+               if (assigned >= count) break;
+                const bookingRoom = this.bookingRoomsRepository.create({
+                 booking: savedBooking,
+                 room: room,
+                 pricePerNight: Number(room.category?.pricePerNight || 0)
+               });
+               await this.bookingRoomsRepository.save(bookingRoom);
+               assigned++;
+           }
+        }
+    }
+
+    return savedBooking;
   }
 
   async create(
@@ -286,5 +350,44 @@ export class BookingsService {
     );
 
     return { rooms };
+  }
+
+  async reportIssue(bookingId: string, dto: ReportIssueDto): Promise<ServiceTask> {
+    const booking = await this.findById(bookingId);
+
+    // Verify the room belongs to this booking
+    const bookingRoom = booking.bookingRooms.find(br => br.room.id === dto.roomId);
+    if (!bookingRoom) {
+      throw new BadRequestException('This room is not part of your booking');
+    }
+
+    const room = await this.roomsRepository.findOne({ where: { id: dto.roomId } });
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    // Determine scheduled date based on priority
+    const priority = dto.priority || TaskPriority.NORMAL;
+    let scheduledDate: Date;
+
+    if (priority === TaskPriority.URGENT) {
+      scheduledDate = new Date(); // Today
+    } else if (priority === TaskPriority.LOW) {
+      scheduledDate = new Date(booking.checkOutDate); // After checkout
+    } else {
+      scheduledDate = new Date(); // Normal = today
+    }
+
+    const task = this.serviceTaskRepository.create({
+      type: TaskType.REPAIR,
+      status: TaskStatus.PENDING,
+      priority,
+      description: dto.description,
+      scheduledDate,
+      reportedByBookingId: bookingId,
+      room,
+    });
+
+    return this.serviceTaskRepository.save(task);
   }
 }

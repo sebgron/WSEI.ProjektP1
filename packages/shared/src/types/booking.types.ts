@@ -4,7 +4,7 @@ import { IRoomResponse } from './room.types';
 
 export interface IBookingResponse {
   id: string;
-  reference: string;
+  bookingReference: string;
   checkInDate: string;
   checkOutDate: string;
   status: BookingStatus;
@@ -14,6 +14,7 @@ export interface IBookingResponse {
   guest?: IGuestProfileBasic;
   bookingRooms?: IBookingRoomResponse[];
   createdAt: string;
+  wantsDailyCleaning?: boolean;
 }
 
 export interface IBookingRoomResponse {

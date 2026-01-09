@@ -13,4 +13,8 @@ export class UpdateServiceTaskDto {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  @IsString()
+  @IsOptional()
+  newDoorCode?: string;
 }

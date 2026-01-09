@@ -34,8 +34,8 @@ export default function RoomCategoriesPage() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        basePrice: '',
-        maxOccupancy: '',
+        pricePerNight: '',
+        capacity: '',
         featureIds: [] as number[],
     });
 
@@ -66,8 +66,8 @@ export default function RoomCategoriesPage() {
             await roomCategoriesAPI.create({
                 name: formData.name,
                 description: formData.description || undefined,
-                basePrice: parseFloat(formData.basePrice),
-                maxOccupancy: parseInt(formData.maxOccupancy),
+                pricePerNight: parseFloat(formData.pricePerNight),
+                capacity: parseInt(formData.capacity),
                 featureIds: formData.featureIds.length > 0 ? formData.featureIds : undefined,
             });
             toast.success('Kategoria została utworzona');
@@ -89,8 +89,8 @@ export default function RoomCategoriesPage() {
             await roomCategoriesAPI.update(selectedCategory.id, {
                 name: formData.name,
                 description: formData.description,
-                basePrice: parseFloat(formData.basePrice),
-                maxOccupancy: parseInt(formData.maxOccupancy),
+                pricePerNight: parseFloat(formData.pricePerNight),
+                capacity: parseInt(formData.capacity),
                 featureIds: formData.featureIds,
             });
             toast.success('Kategoria została zaktualizowana');
@@ -126,8 +126,8 @@ export default function RoomCategoriesPage() {
         setFormData({
             name: '',
             description: '',
-            basePrice: '',
-            maxOccupancy: '',
+            pricePerNight: '',
+            capacity: '',
             featureIds: [],
         });
         setSelectedCategory(null);
@@ -138,8 +138,8 @@ export default function RoomCategoriesPage() {
         setFormData({
             name: category.name,
             description: category.description || '',
-            basePrice: category.basePrice.toString(),
-            maxOccupancy: category.maxOccupancy.toString(),
+            pricePerNight: category.pricePerNight != null ? category.pricePerNight.toString() : '',
+            capacity: category.capacity != null ? category.capacity.toString() : '',
             featureIds: category.features?.map((f) => f.id) || [],
         });
         setEditDialogOpen(true);
@@ -165,12 +165,12 @@ export default function RoomCategoriesPage() {
             header: 'Nazwa',
         },
         {
-            key: 'basePrice',
+            key: 'pricePerNight',
             header: 'Cena bazowa',
-            render: (cat) => `${cat.basePrice.toFixed(2)} zł`,
+            render: (cat) => cat.pricePerNight != null ? `${Number(cat.pricePerNight).toFixed(2)} zł` : '-',
         },
         {
-            key: 'maxOccupancy',
+            key: 'capacity',
             header: 'Maks. osób',
         },
         {
@@ -226,22 +226,22 @@ export default function RoomCategoriesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="basePrice">Cena bazowa (zł)</Label>
+                    <Label htmlFor="pricePerNight">Cena bazowa (zł)</Label>
                     <Input
-                        id="basePrice"
+                        id="pricePerNight"
                         type="number"
                         step="0.01"
-                        value={formData.basePrice}
-                        onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                        value={formData.pricePerNight}
+                        onChange={(e) => setFormData({ ...formData, pricePerNight: e.target.value })}
                     />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="maxOccupancy">Maks. liczba osób</Label>
+                    <Label htmlFor="capacity">Maks. liczba osób</Label>
                     <Input
-                        id="maxOccupancy"
+                        id="capacity"
                         type="number"
-                        value={formData.maxOccupancy}
-                        onChange={(e) => setFormData({ ...formData, maxOccupancy: e.target.value })}
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                     />
                 </div>
             </div>

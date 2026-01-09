@@ -13,8 +13,8 @@ export interface IRoomCategoryResponse {
   id: number;
   name: string;
   description?: string;
-  basePrice: number;
-  maxOccupancy: number;
+  pricePerNight: number;
+  capacity: number;
   features?: IRoomFeatureResponse[];
 }
 

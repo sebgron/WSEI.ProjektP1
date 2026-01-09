@@ -11,8 +11,10 @@ import { RoomCategoriesController } from './room-categories.controller';
 import { RoomFeaturesService } from './room-features.service';
 import { RoomFeaturesController } from './room-features.controller';
 
+import { Booking } from '../bookings/entities/booking.entity';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Room, RoomCategory, RoomFeature, AccessConfiguration])],
+  imports: [TypeOrmModule.forFeature([Room, RoomCategory, RoomFeature, AccessConfiguration, Booking])],
   controllers: [RoomCategoriesController,RoomsController, RoomFeaturesController],
   providers: [RoomsService, RoomCategoriesService, RoomFeaturesService],
   exports: [RoomsService, RoomCategoriesService, RoomFeaturesService],

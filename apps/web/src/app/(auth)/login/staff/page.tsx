@@ -36,15 +36,16 @@ export default function StaffLoginPage() {
         setIsLoading(true);
         try {
             // Identifier can be email or username
-            await login({ email: data.identifier, password: data.password });
+            const user = await login({ email: data.identifier, password: data.password });
 
-            toast.success('Witaj w panelu pracownika');
-            // We can't easily know role here immediately without return value from login() returning user.
-            // But AuthContext usually sets user.
+            toast.success('Zalogowano pomyślnie');
 
-            // I'll use a hardcoded /staff/housekeeping for now, assuming standard staff flow.
-            // If admin, they can navigate.
-            router.push('/staff/housekeeping');
+            // Redirect based on role
+            if (user.role === 'ADMIN') {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/staff/housekeeping');
+            }
 
         } catch (error) {
             console.error(error);

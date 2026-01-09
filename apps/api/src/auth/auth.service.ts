@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../users/entities/user.entity';
 import { GuestProfile } from '../guests/entities/guest-profile.entity';
-import { LoginDto, RegisterDto, UserRole } from '@turborepo/shared';
+import { LoginDto, RegisterDto, UserRole, GuestLoginDto } from '@turborepo/shared';
 
 @Injectable()
 export class AuthService {
@@ -53,6 +53,44 @@ export class AuthService {
         role: user.role,
         firstName: user.guestProfile?.firstName,
         lastName: user.guestProfile?.lastName,
+      },
+    };
+  }
+
+  async guestLogin(guestLoginDto: GuestLoginDto) {
+    // Find booking by reference
+    const booking = await this.guestProfileRepository.manager
+      .getRepository('Booking')
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.guest', 'guest')
+      .where('booking.bookingReference = :reference', { reference: guestLoginDto.bookingReference.toUpperCase() })
+      .andWhere('guest.email = :email', { email: guestLoginDto.email.toLowerCase() })
+      .getOne();
+
+    if (!booking) {
+      throw new UnauthorizedException('Booking not found or email does not match');
+    }
+
+    const guest = (booking as any).guest;
+
+    // Create a temporary token for this guest
+    const payload = {
+      email: guest.email,
+      sub: guest.id, // Using guestProfile ID as sub for guest-login
+      role: UserRole.USER,
+      guestProfileId: guest.id,
+      isGuestLogin: true,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: guest.id,
+        email: guest.email,
+        role: UserRole.USER,
+        firstName: guest.firstName,
+        lastName: guest.lastName,
+        guestProfile: guest,
       },
     };
   }

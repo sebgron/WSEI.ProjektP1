@@ -42,7 +42,7 @@ export const translations = {
     [BookingStatus.PENDING]: 'Oczekująca',
     [BookingStatus.CONFIRMED]: 'Potwierdzona',
     [BookingStatus.CANCELLED]: 'Anulowana',
-    [BookingStatus.CHECKED_IN]: 'Zameldowany',
+    [BookingStatus.CHECKED_IN]: 'Zameldowana',
     [BookingStatus.COMPLETED]: 'Zakończona',
   },
   paymentStatus: {
@@ -61,6 +61,7 @@ export const translations = {
   },
   taskType: {
     [TaskType.CLEANING]: 'Sprzątanie',
+    [TaskType.CHECKOUT]: 'Sprzątanie końcowe',
     [TaskType.REPAIR]: 'Naprawa',
     [TaskType.AMENITY_REFILL]: 'Uzupełnienie',
   },
@@ -181,8 +182,8 @@ export const roomCategoriesAPI = {
   create: async (data: {
     name: string;
     description?: string;
-    basePrice: number;
-    maxOccupancy: number;
+    pricePerNight: number;
+    capacity: number;
     featureIds?: number[];
   }): Promise<RoomCategory> => {
     return apiFetch<RoomCategory>('rooms/categories', {
@@ -194,8 +195,8 @@ export const roomCategoriesAPI = {
   update: async (id: number, data: Partial<{
     name: string;
     description: string;
-    basePrice: number;
-    maxOccupancy: number;
+    pricePerNight: number;
+    capacity: number;
     featureIds: number[];
   }>): Promise<RoomCategory> => {
     return apiFetch<RoomCategory>(`rooms/categories/${id}`, {
@@ -435,6 +436,7 @@ export const serviceTasksAPI = {
     type: TaskType;
     description: string;
     status: TaskStatus;
+    newDoorCode?: string;
   }>): Promise<ServiceTask> => {
     return apiFetch<ServiceTask>(`service-tasks/${id}`, {
       method: 'PATCH',
@@ -449,10 +451,10 @@ export const serviceTasksAPI = {
     });
   },
 
-  assignWorker: async (id: number, odataId: string): Promise<ServiceTask> => {
+  assignWorker: async (id: number, userId: string): Promise<ServiceTask> => {
     return apiFetch<ServiceTask>(`service-tasks/${id}/assign`, {
       method: 'PATCH',
-      body: JSON.stringify({ odataId }),
+      body: JSON.stringify({ userId }),
     });
   },
 

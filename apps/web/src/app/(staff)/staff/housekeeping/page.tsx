@@ -6,16 +6,8 @@ import { staffAPI } from '@/lib/staff-api';
 import { IServiceTaskResponse, TaskStatus, TaskType } from '@turborepo/shared';
 import { translations } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-    CardDescription
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import { Card, CardContent } from '@/components/ui/card';
 import {
     CheckCircle2,
     Clock,
@@ -23,30 +15,21 @@ import {
     Wrench,
     Package,
     Loader2,
-    Calendar,
-    ArrowRight
+    Play,
+    CalendarDays,
+    CalendarClock,
+    Calendar
 } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 
 export default function HousekeepingPage() {
     const [tasks, setTasks] = useState<IServiceTaskResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [filterType, setFilterType] = useState<string>('all');
-    // Using Tabs for status: "active" (pending/progress) vs "completed" (done)
-    const [activeTab, setActiveTab] = useState('active');
+    const [dateFilter, setDateFilter] = useState<'today' | 'tomorrow' | 'later'>('today');
 
     const fetchTasks = async () => {
         setIsLoading(true);
         try {
             const data = await staffAPI.getTasks();
-            // Sort: High priority/Current first?
-            // Actually API usually returns chronological. Let's sort Pending first.
             setTasks(data);
         } catch (error) {
             console.error(error);
@@ -60,11 +43,55 @@ export default function HousekeepingPage() {
         fetchTasks();
     }, []);
 
+    const [showDoorCodeDialog, setShowDoorCodeDialog] = useState(false);
+    const [completingTask, setCompletingTask] = useState<IServiceTaskResponse | null>(null);
+    const [newDoorCode, setNewDoorCode] = useState('');
+
+    const generateDoorCode = () => {
+        // Generate random 4 digit code
+        return Math.floor(1000 + Math.random() * 9000).toString() + '#';
+    };
+
     const handleStatusChange = async (taskId: number, newStatus: TaskStatus) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        // If CHECKOUT cleaning task is being completed, show dialog for new code
+        if (newStatus === TaskStatus.DONE && task.type === TaskType.CHECKOUT) {
+            setCompletingTask(task);
+            setNewDoorCode(generateDoorCode());
+            setShowDoorCodeDialog(true);
+            return;
+        }
+
+        await updateTaskStatus(taskId, newStatus);
+    };
+
+    const confirmCompletion = async () => {
+        if (!completingTask) return;
+
+        try {
+            await staffAPI.updateTask(completingTask.id, {
+                status: TaskStatus.DONE,
+                newDoorCode,
+                type: completingTask.type,
+                description: completingTask.description || '',
+            });
+
+            toast.success('Zadanie ukończone i kod do drzwi zaktualizowany!');
+            setTasks(prev => prev.map(t => t.id === completingTask.id ? { ...t, status: TaskStatus.DONE } : t));
+            setShowDoorCodeDialog(false);
+            setCompletingTask(null);
+        } catch (error) {
+            console.error(error);
+            toast.error('Nie udało się zakończyć zadania');
+        }
+    };
+
+    const updateTaskStatus = async (taskId: number, newStatus: TaskStatus) => {
         try {
             await staffAPI.updateTaskStatus(taskId, newStatus);
-            toast.success('Status zadania zaktualizowany');
-            // Optimistic update or refetch
+            toast.success(newStatus === TaskStatus.DONE ? 'Zadanie ukończone!' : 'Rozpoczęto zadanie');
             setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
         } catch (error) {
             console.error(error);
@@ -72,172 +99,270 @@ export default function HousekeepingPage() {
         }
     };
 
-    const getTaskIcon = (type: TaskType) => {
-        switch (type) {
-            case TaskType.CLEANING: return <Brush className="h-5 w-5" />;
-            case TaskType.REPAIR: return <Wrench className="h-5 w-5" />;
-            case TaskType.AMENITY_REFILL: return <Package className="h-5 w-5" />;
-            default: return <Clock className="h-5 w-5" />;
-        }
+    const getTaskDate = (task: IServiceTaskResponse): string => {
+        return task.scheduledDate || task.createdAt;
     };
 
-    const getTaskColor = (type: TaskType) => {
-        switch (type) {
-            case TaskType.CLEANING: return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-            case TaskType.REPAIR: return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-            case TaskType.AMENITY_REFILL: return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-            default: return 'bg-gray-100 text-gray-700 border-gray-200';
-        }
+    const isToday = (date: string) => {
+        const d = new Date(date);
+        const today = new Date();
+        return d.toDateString() === today.toDateString();
     };
 
-    const filteredTasks = tasks.filter(task => {
-        // Filter by type
-        if (filterType !== 'all' && task.type !== filterType) return false;
+    const isTomorrow = (date: string) => {
+        const d = new Date(date);
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return d.toDateString() === tomorrow.toDateString();
+    };
 
-        // Filter by status tab
-        if (activeTab === 'active') {
-            return task.status === TaskStatus.PENDING || task.status === TaskStatus.IN_PROGRESS;
-        } else {
-            return task.status === TaskStatus.DONE;
-        }
+    const currentTask = tasks.find(t => t.status === TaskStatus.IN_PROGRESS);
+    const pendingTasks = tasks.filter(t => t.status === TaskStatus.PENDING);
+
+    const filteredTasks = pendingTasks.filter(task => {
+        const taskDate = getTaskDate(task);
+        if (dateFilter === 'today') return isToday(taskDate);
+        if (dateFilter === 'tomorrow') return isTomorrow(taskDate);
+        return !isToday(taskDate) && !isTomorrow(taskDate);
     });
 
-    const TaskCard = ({ task }: { task: IServiceTaskResponse }) => (
-        <Card className="mb-4 overflow-hidden border transition-all hover:shadow-md">
-            <CardHeader className="pb-3 pt-4 px-4 bg-muted/40 border-b flex flex-row items-center justify-between space-y-0">
-                <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg border ${getTaskColor(task.type)}`}>
-                        {getTaskIcon(task.type)}
-                    </div>
-                    <div>
-                        <CardTitle className="text-base font-bold">
-                            Pokój {task.room.number}
-                        </CardTitle>
-                        <CardDescription className="text-xs font-medium">
-                            {translations.taskType[task.type]}
-                        </CardDescription>
-                    </div>
-                </div>
-                <Badge variant={
-                    task.status === TaskStatus.PENDING ? 'outline' :
-                        task.status === TaskStatus.IN_PROGRESS ? 'default' : 'secondary'
-                } className="rounded-full">
-                    {translations.taskStatus[task.status]}
-                </Badge>
-            </CardHeader>
-            <CardContent className="p-4">
-                {task.description && (
-                    <div className="mb-4 text-sm bg-muted/50 p-3 rounded-md italic">
-                        &quot;{task.description}&quot;
-                    </div>
-                )}
+    const getTaskIcon = (type: TaskType) => {
+        switch (type) {
+            case TaskType.CLEANING: return <Brush className="h-4 w-4" />;
+            case TaskType.CHECKOUT: return <CheckCircle2 className="h-4 w-4" />;
+            case TaskType.REPAIR: return <Wrench className="h-4 w-4" />;
+            case TaskType.AMENITY_REFILL: return <Package className="h-4 w-4" />;
+            default: return <Clock className="h-4 w-4" />;
+        }
+    };
 
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>
-                        {new Date(task.createdAt).toLocaleDateString('pl-PL', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                </div>
-            </CardContent>
+    const getTaskBg = (type: TaskType) => {
+        switch (type) {
+            case TaskType.CLEANING: return 'bg-blue-500';
+            case TaskType.CHECKOUT: return 'bg-purple-600';
+            case TaskType.REPAIR: return 'bg-orange-500';
+            case TaskType.AMENITY_REFILL: return 'bg-emerald-500';
+            default: return 'bg-gray-500';
+        }
+    };
 
-            {task.status !== TaskStatus.DONE && (
-                <CardFooter className="px-4 pb-4 pt-0">
-                    {task.status === TaskStatus.PENDING && (
-                        <Button
-                            className="w-full group"
-                            onClick={() => handleStatusChange(task.id, TaskStatus.IN_PROGRESS)}
-                        >
-                            Rozpocznij zadanie
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    )}
-                    {task.status === TaskStatus.IN_PROGRESS && (
-                        <Button
-                            className="w-full bg-green-600 hover:bg-green-700 text-white shadow-sm shadow-green-200 dark:shadow-none"
-                            onClick={() => handleStatusChange(task.id, TaskStatus.DONE)}
-                        >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Oznacz jako gotowe
-                        </Button>
-                    )}
-                </CardFooter>
-            )}
-        </Card>
-    );
+    const todayCount = pendingTasks.filter(t => isToday(t.createdAt)).length;
+    const tomorrowCount = pendingTasks.filter(t => isTomorrow(t.createdAt)).length;
+    const laterCount = pendingTasks.filter(t => !isToday(t.createdAt) && !isTomorrow(t.createdAt)).length;
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm">Ładowanie zadań...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight">Lista Zadań</h1>
-                <p className="text-muted-foreground text-sm">Przeglądaj i zarządzaj zgłoszeniami</p>
+        <div className="space-y-6 pb-8">
+            {/* Current Task - Hero Section */}
+            {currentTask ? (
+                <Card className="border-2 border-primary bg-primary/5">
+                    <CardContent className="p-4">
+                        <div className="flex items-center gap-2 text-xs font-medium text-primary mb-3">
+                            <Play className="w-3 h-3 fill-current" />
+                            AKTUALNIE WYKONUJESZ
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-xl ${getTaskBg(currentTask.type)} text-white flex items-center justify-center`}>
+                                    {getTaskIcon(currentTask.type)}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-lg">Pokój {currentTask.room.number}</p>
+                                    <p className="text-sm text-muted-foreground">{translations.taskType[currentTask.type]}</p>
+                                </div>
+                            </div>
+                            <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleStatusChange(currentTask.id, TaskStatus.DONE)}
+                            >
+                                <CheckCircle2 className="w-4 h-4 mr-1" />
+                                Gotowe
+                            </Button>
+                        </div>
+                        {currentTask.description && (
+                            <p className="mt-3 text-sm text-muted-foreground bg-background/50 p-2 rounded">
+                                {currentTask.description}
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="text-center py-6 px-4 rounded-xl bg-muted/30 border border-dashed">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                    <p className="text-sm font-medium">Brak aktywnego zadania</p>
+                    <p className="text-xs text-muted-foreground">Wybierz zadanie z listy poniżej</p>
+                </div>
+            )}
+
+            {/* Date Filter Tabs */}
+            <div className="flex gap-2">
+                <button
+                    onClick={() => setDateFilter('today')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${dateFilter === 'today'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'bg-muted hover:bg-muted/80'
+                        }`}
+                >
+                    <CalendarDays className="w-4 h-4" />
+                    Dziś
+                    {todayCount > 0 && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${dateFilter === 'today' ? 'bg-primary-foreground/20' : 'bg-primary/10 text-primary'
+                            }`}>
+                            {todayCount}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setDateFilter('tomorrow')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${dateFilter === 'tomorrow'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'bg-muted hover:bg-muted/80'
+                        }`}
+                >
+                    <CalendarClock className="w-4 h-4" />
+                    Jutro
+                    {tomorrowCount > 0 && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${dateFilter === 'tomorrow' ? 'bg-primary-foreground/20' : 'bg-primary/10 text-primary'
+                            }`}>
+                            {tomorrowCount}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setDateFilter('later')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${dateFilter === 'later'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'bg-muted hover:bg-muted/80'
+                        }`}
+                >
+                    <Calendar className="w-4 h-4" />
+                    Później
+                    {laterCount > 0 && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${dateFilter === 'later' ? 'bg-primary-foreground/20' : 'bg-primary/10 text-primary'
+                            }`}>
+                            {laterCount}
+                        </span>
+                    )}
+                </button>
             </div>
 
-            <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-                    <TabsList className="grid w-full sm:w-auto grid-cols-2 h-11 p-1">
-                        <TabsTrigger value="active" className="text-sm">Do zrobienia</TabsTrigger>
-                        <TabsTrigger value="done" className="text-sm">Ukończone</TabsTrigger>
-                    </TabsList>
+            <div className="space-y-3">
+                {filteredTasks.length > 0 ? (
+                    filteredTasks.map(task => (
+                        <Card key={task.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                            <CardContent className="p-0">
+                                <div className="flex items-center">
+                                    {/* Color bar */}
+                                    <div className={`w-1.5 self-stretch ${getTaskBg(task.type)}`} />
 
-                    <Select value={filterType} onValueChange={setFilterType}>
-                        <SelectTrigger className="w-full sm:w-[180px] h-11">
-                            <SelectValue placeholder="Wszystkie typy" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Wszystkie typy</SelectItem>
-                            <SelectItem value={TaskType.CLEANING}>Sprzątanie</SelectItem>
-                            <SelectItem value={TaskType.REPAIR}>Naprawy</SelectItem>
-                            <SelectItem value={TaskType.AMENITY_REFILL}>Uposażenie</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                                    <div className="flex-1 p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-center">
+                                                <p className="text-2xl font-bold">{task.room.number}</p>
+                                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pokój</p>
+                                            </div>
+                                            <div className="h-8 w-px bg-border" />
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    {getTaskIcon(task.type)}
+                                                    <span className="text-sm font-medium">{translations.taskType[task.type]}</span>
+                                                </div>
+                                                {task.description && (
+                                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 max-w-[180px]">
+                                                        {task.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
 
-                <TabsContent value="active" className="space-y-4 data-[state=inactive]:hidden focus-visible:outline-none">
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <p>Ładowanie zadań...</p>
-                        </div>
-                    ) : (
-                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            {filteredTasks.length > 0 ? (
-                                filteredTasks.map(task => (
-                                    <TaskCard key={task.id} task={task} />
-                                ))
-                            ) : (
-                                <div className="text-center py-16 px-4 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/10">
-                                    <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 className="w-8 h-8 text-primary" />
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleStatusChange(task.id, TaskStatus.IN_PROGRESS)}
+                                            disabled={!!currentTask}
+                                        >
+                                            <Play className="w-3 h-3 mr-1" />
+                                            Start
+                                        </Button>
                                     </div>
-                                    <h3 className="text-lg font-semibold mb-1">Brak aktywnych zadań</h3>
-                                    <p className="text-sm max-w-xs mx-auto">Wszystkie zgłoszenia zostały obsłużone. Czas na przerwę!</p>
                                 </div>
-                            )}
-                        </div>
-                    )}
-                </TabsContent>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <Clock className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                        <p className="font-medium">Brak zadań {dateFilter === 'today' ? 'na dziś' : dateFilter === 'tomorrow' ? 'na jutro' : 'zaplanowanych'}</p>
+                        <p className="text-sm mt-1">Sprawdź inne dni</p>
+                    </div>
+                )}
+            </div>
 
-                <TabsContent value="done" className="space-y-4 data-[state=inactive]:hidden focus-visible:outline-none">
-                    {isLoading ? (
-                        <div className="flex justify-center py-12">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        </div>
-                    ) : (
-                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            {filteredTasks.length > 0 ? (
-                                filteredTasks.map(task => (
-                                    <TaskCard key={task.id} task={task} />
-                                ))
-                            ) : (
-                                <div className="text-center py-16 text-muted-foreground border border-dashed rounded-xl">
-                                    <Clock className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                    <p>Historia zadań jest pusta</p>
+            {/* Completed Today Summary */}
+            {tasks.filter(t => t.status === TaskStatus.DONE && isToday(t.createdAt)).length > 0 && (
+                <div className="pt-4 border-t">
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Ukończone dziś: {tasks.filter(t => t.status === TaskStatus.DONE && isToday(t.createdAt)).length}
+                    </p>
+                </div>
+            )}
+
+            {/* Door Code Rotation Dialog */}
+            {showDoorCodeDialog && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md shadow-2xl">
+                        <div className="p-6 space-y-4">
+                            <div className="flex items-center gap-3 text-green-600">
+                                <CheckCircle2 className="w-6 h-6" />
+                                <h3 className="font-semibold text-lg text-foreground">Sprzątanie zakończone</h3>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground">
+                                Ponieważ pokój był zajęty, zalecana jest zmiana kodu do drzwi dla bezpieczeństwa.
+                            </p>
+
+                            <div className="bg-muted p-4 rounded-lg space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground block">
+                                    Nowy kod dostępu (wygenerowany losowo)
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newDoorCode}
+                                        onChange={(e) => setNewDoorCode(e.target.value)}
+                                        className="flex-1 text-2xl font-mono font-bold bg-background border rounded px-3 py-2 text-center tracking-widest"
+                                    />
+                                    <Button variant="outline" size="icon" onClick={() => setNewDoorCode(generateDoorCode())}>
+                                        <Clock className="w-4 h-4" />
+                                    </Button>
                                 </div>
-                            )}
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <Button className="flex-1" onClick={confirmCompletion}>
+                                    Zatwierdź i zakończ
+                                </Button>
+                                <Button variant="outline" onClick={() => {
+                                    setShowDoorCodeDialog(false);
+                                    setCompletingTask(null);
+                                }}>
+                                    Anuluj
+                                </Button>
+                            </div>
                         </div>
-                    )}
-                </TabsContent>
-            </Tabs>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }

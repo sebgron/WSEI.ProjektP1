@@ -16,6 +16,10 @@ export interface IGuestProfileBasic {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  addressStreet?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
 }
 
 export interface IEmployeeProfileBasic {

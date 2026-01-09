@@ -46,7 +46,7 @@ export default function RoomsPage() {
         number: '',
         categoryId: '',
         condition: RoomCondition.CLEAN as RoomCondition,
-        accessConfigId: '',
+        accessConfigId: 'none',
     });
 
     const fetchData = useCallback(async () => {
@@ -82,7 +82,7 @@ export default function RoomsPage() {
                 number: formData.number,
                 categoryId: parseInt(formData.categoryId),
                 condition: formData.condition,
-                accessConfigId: formData.accessConfigId ? parseInt(formData.accessConfigId) : undefined,
+                accessConfigId: formData.accessConfigId && formData.accessConfigId !== 'none' ? parseInt(formData.accessConfigId) : undefined,
             });
             toast.success('Pokój został utworzony');
             setCreateDialogOpen(false);
@@ -104,7 +104,7 @@ export default function RoomsPage() {
                 number: formData.number,
                 categoryId: parseInt(formData.categoryId),
                 condition: formData.condition,
-                accessConfigId: formData.accessConfigId ? parseInt(formData.accessConfigId) : null,
+                accessConfigId: formData.accessConfigId && formData.accessConfigId !== 'none' ? parseInt(formData.accessConfigId) : null,
             });
             toast.success('Pokój został zaktualizowany');
             setEditDialogOpen(false);
@@ -151,7 +151,7 @@ export default function RoomsPage() {
             number: '',
             categoryId: categories[0]?.id.toString() || '',
             condition: RoomCondition.CLEAN,
-            accessConfigId: '',
+            accessConfigId: 'none',
         });
         setSelectedRoom(null);
     };
@@ -162,7 +162,7 @@ export default function RoomsPage() {
             number: room.number,
             categoryId: room.category?.id.toString() || '',
             condition: room.condition,
-            accessConfigId: room.accessConfig?.id.toString() || '',
+            accessConfigId: room.accessConfig?.id.toString() || 'none',
         });
         setEditDialogOpen(true);
     };
@@ -349,7 +349,7 @@ export default function RoomsPage() {
                                     <SelectValue placeholder="Wybierz konfigurację" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Brak</SelectItem>
+                                    <SelectItem value="none">Brak</SelectItem>
                                     {accessConfigs.map((config) => (
                                         <SelectItem key={config.id} value={config.id.toString()}>
                                             {config.name}
@@ -429,7 +429,7 @@ export default function RoomsPage() {
                                     <SelectValue placeholder="Wybierz konfigurację" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Brak</SelectItem>
+                                    <SelectItem value="none">Brak</SelectItem>
                                     {accessConfigs.map((config) => (
                                         <SelectItem key={config.id} value={config.id.toString()}>
                                             {config.name}

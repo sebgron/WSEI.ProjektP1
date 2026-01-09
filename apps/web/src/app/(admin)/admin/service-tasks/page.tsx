@@ -40,6 +40,8 @@ export default function ServiceTasksPage() {
     const [statusDialogOpen, setStatusDialogOpen] = useState(false);
     const [assignDialogOpen, setAssignDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+
     const [selectedTask, setSelectedTask] = useState<ServiceTask | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -187,6 +189,11 @@ export default function ServiceTasksPage() {
         setSelectedTask(null);
     };
 
+    const openDetailsDialog = (task: ServiceTask) => {
+        setSelectedTask(task);
+        setDetailsDialogOpen(true);
+    };
+
     const openEditDialog = (task: ServiceTask) => {
         setSelectedTask(task);
         setFormData({
@@ -245,11 +252,20 @@ export default function ServiceTasksPage() {
         },
         {
             key: 'assignedTo',
-            header: 'Przypisano do',
-            render: (task) =>
-                task.assignedTo
+            header: 'Pracownik', // REPLACED/RENAMED
+            render: (task) => {
+                if (task.status === TaskStatus.DONE && task.completedBy) {
+                    return (
+                        <div className="flex flex-col">
+                            <span className="font-medium text-green-600">Zrealizował:</span>
+                            <span>{task.completedBy.firstName} {task.completedBy.lastName}</span>
+                        </div>
+                    );
+                }
+                return task.assignedTo
                     ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
-                    : '-',
+                    : <span className="text-muted-foreground italic">Nieprzypisany</span>;
+            },
         },
         {
             key: 'status',
@@ -269,8 +285,13 @@ export default function ServiceTasksPage() {
 
     const actions: Action<ServiceTask>[] = [
         {
+            label: 'Szczegóły',
+            onClick: openDetailsDialog,
+        },
+        {
             label: 'Edytuj',
             onClick: openEditDialog,
+            separator: true,
         },
         {
             label: 'Zmień status',
@@ -343,6 +364,70 @@ export default function ServiceTasksPage() {
                 emptyMessage="Brak zadań"
                 getRowKey={(task) => task.id}
             />
+
+            {/* Details Dialog - NEW */}
+            <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+                <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Szczegóły zadania #{selectedTask?.id}</DialogTitle>
+                    </DialogHeader>
+                    {selectedTask && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label className="text-muted-foreground">Typ zadania</Label>
+                                    <div className="mt-1 font-medium">{translations.taskType[selectedTask.type]}</div>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Status</Label>
+                                    <div className="mt-1">
+                                        <Badge variant={getStatusBadgeVariant(selectedTask.status)}>
+                                            {translations.taskStatus[selectedTask.status]}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Pokój</Label>
+                                    <div className="mt-1 font-medium">Nr {selectedTask.room.number}</div>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Data zgłoszenia</Label>
+                                    <div className="mt-1">{new Date(selectedTask.createdAt).toLocaleString('pl-PL')}</div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label className="text-muted-foreground">Opis</Label>
+                                <div className="mt-1 p-3 bg-muted/50 rounded-md text-sm">
+                                    {selectedTask.description || <span className="italic text-muted-foreground">Brak opisu</span>}
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label className="text-muted-foreground">Przypisano do</Label>
+                                    <div className="mt-1">
+                                        {selectedTask.assignedTo
+                                            ? `${selectedTask.assignedTo.firstName} ${selectedTask.assignedTo.lastName}`
+                                            : '-'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Zrealizowane przez</Label>
+                                    <div className="mt-1 font-medium">
+                                        {selectedTask.completedBy
+                                            ? `${selectedTask.completedBy.firstName} ${selectedTask.completedBy.lastName}`
+                                            : '-'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button onClick={() => setDetailsDialogOpen(false)}>Zamknij</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Create Dialog */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

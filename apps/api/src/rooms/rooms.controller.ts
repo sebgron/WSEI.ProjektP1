@@ -12,13 +12,24 @@ import {
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CreateRoomDto, UpdateRoomDto, RoomCondition } from '@turborepo/shared';
+import { CreateRoomDto, UpdateRoomDto, RoomCondition, SearchAvailabilityDto } from '@turborepo/shared';
 
 @Controller('rooms')
-@UseGuards(JwtAuthGuard)
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
+
+
+  @Get('available')
+  findAvailable(@Query() query: SearchAvailabilityDto) {
+    return this.roomsService.findAvailable(
+      query.checkIn,
+      query.checkOut,
+      query.guestCount,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(
     @Query('condition') condition?: RoomCondition,
@@ -30,16 +41,19 @@ export class RoomsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.roomsService.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomsService.create(createRoomDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -48,6 +62,7 @@ export class RoomsController {
     return this.roomsService.update(id, updateRoomDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/condition')
   updateCondition(
     @Param('id', ParseIntPipe) id: number,
@@ -56,6 +71,7 @@ export class RoomsController {
     return this.roomsService.updateCondition(id, condition);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.roomsService.remove(id);

@@ -72,8 +72,27 @@ export class ServiceTasksService {
     return task;
   }
 
-  async findMyTasks(employeeProfileId: string): Promise<ServiceTask[]> {
-    return this.findAll(undefined, employeeProfileId);
+  async findMyTasks(userId: string): Promise<ServiceTask[]> {
+    const employee = await this.employeeProfileRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!employee) {
+      throw new NotFoundException(`Employee profile for user ${userId} not found`);
+    }
+
+    return this.tasksRepository.find({
+      where: [
+        { assignedTo: { id: employee.id } }, 
+        { assignedTo: { id: null } as any }, 
+        { completedBy: { id: employee.id } }, 
+      ] as any, 
+      relations: ['room', 'assignedTo', 'completedBy'],
+      order: {
+        priority: 'DESC',
+        createdAt: 'DESC',
+      },
+    });
   }
 
   async create(createDto: CreateServiceTaskDto): Promise<ServiceTask> {
@@ -101,15 +120,42 @@ export class ServiceTasksService {
 
   async update(id: number, updateDto: UpdateServiceTaskDto): Promise<ServiceTask> {
     const task = await this.findById(id);
+    
+    if (updateDto.newDoorCode && updateDto.status === TaskStatus.DONE && task.type === TaskType.CHECKOUT) {
+      const room = await this.roomsRepository.findOne({
+        where: { id: task.room.id },
+      });
+      if (room) {
+        room.doorCode = updateDto.newDoorCode;
+        room.condition = RoomCondition.CLEAN;
+        await this.roomsRepository.save(room);
+        
+        updateDto.status = TaskStatus.DONE;
+      }
+    }
+
     Object.assign(task, updateDto);
     return this.tasksRepository.save(task);
   }
 
-  async updateStatus(id: number, status: TaskStatus): Promise<ServiceTask> {
+  async updateStatus(id: number, status: TaskStatus, completedByUserId?: string): Promise<ServiceTask> {
     const task = await this.findById(id);
     task.status = status;
 
-    if (status === TaskStatus.DONE && task.type === TaskType.CLEANING) {
+    if (status === TaskStatus.DONE && completedByUserId) {
+       const employee = await this.employeeProfileRepository.findOne({
+          where: { user: { id: completedByUserId } }
+       });
+       if (employee) {
+          task.completedBy = employee;
+       }
+    } else if (status !== TaskStatus.DONE) {
+       // If moved back from done, clear completedBy
+       task.completedBy = null as unknown as EmployeeProfile;
+    }
+
+    // Both CLEANING and CHECKOUT mark room as clean
+    if (status === TaskStatus.DONE && (task.type === TaskType.CLEANING || task.type === TaskType.CHECKOUT)) {
       const room = await this.roomsRepository.findOne({
         where: { id: task.room.id },
       });

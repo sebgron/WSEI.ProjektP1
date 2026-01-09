@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Room } from './entities/room.entity';
 import { RoomCategory } from './entities/room-category.entity';
 import { AccessConfiguration } from '../access-configs/entities/access-config.entity';
+import { Booking } from '../bookings/entities/booking.entity';
 import { CreateRoomDto, UpdateRoomDto, RoomCondition } from '@turborepo/shared';
 
 @Injectable()
@@ -15,7 +16,58 @@ export class RoomsService {
     private categoriesRepository: Repository<RoomCategory>,
     @InjectRepository(AccessConfiguration)
     private accessConfigRepository: Repository<AccessConfiguration>,
+    @InjectRepository(Booking)
+    private bookingsRepository: Repository<Booking>,
   ) {}
+
+  async findAvailable(checkIn: string, checkOut: string, guestCount: number) {
+    const allRooms = await this.roomsRepository.find({
+      relations: ['category'],
+    });
+
+    const overlappingBookings = await this.bookingsRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.bookingRooms', 'bookingRoom')
+      .leftJoinAndSelect('bookingRoom.room', 'room')
+      .where('booking.status IN (:...statuses)', { statuses: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] })
+      .andWhere('booking.checkInDate < :checkOut', { checkOut })
+      .andWhere('booking.checkOutDate > :checkIn', { checkIn })
+      .getMany();
+
+    const occupiedRoomIds = new Set<number>();
+    overlappingBookings.forEach((booking) => {
+      booking.bookingRooms.forEach((br) => {
+        if (br.room) occupiedRoomIds.add(br.room.id);
+      });
+    });
+
+    const availableRooms = allRooms.filter((room) => !occupiedRoomIds.has(room.id));
+
+    const categoryMap = new Map<
+      number,
+      { category: RoomCategory; availableCount: number; maxCapacity: number }
+    >();
+
+    availableRooms.forEach((room) => {
+      if (!room.category) return;
+      const catId = room.category.id;
+      if (!categoryMap.has(catId)) {
+        categoryMap.set(catId, {
+          category: room.category,
+          availableCount: 0,
+          maxCapacity: room.category.capacity,
+        });
+      }
+      const entry = categoryMap.get(catId)!;
+      entry.availableCount++;
+    });
+
+    return Array.from(categoryMap.values()).map(entry => ({
+      category: entry.category,
+      availableCount: entry.availableCount,
+      totalCapacity: entry.maxCapacity
+    }));
+  }
 
   async findAll(condition?: RoomCondition, categoryId?: number): Promise<Room[]> {
     const query = this.roomsRepository

@@ -7,7 +7,7 @@ import { authAPI, User, LoginData, GuestLoginData } from '@/lib/api';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (credentials: LoginData) => Promise<void>;
+  login: (credentials: LoginData) => Promise<User>;
   guestLogin: (credentials: GuestLoginData) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -43,11 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (credentials: LoginData) => {
+  const login = async (credentials: LoginData): Promise<User> => {
     try {
       const response = await authAPI.login(credentials);
       Cookies.set('token', response.access_token, { expires: 7 });
       setUser(response.user);
+      return response.user;
     } catch (error) {
       throw error;
     }

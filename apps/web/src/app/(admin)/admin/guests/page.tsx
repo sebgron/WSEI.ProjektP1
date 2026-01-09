@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Search } from 'lucide-react';
+import { formatNights } from '@/lib/utils';
 
 export default function GuestsPage() {
     const [guests, setGuests] = useState<GuestProfile[]>([]);
@@ -34,6 +35,7 @@ export default function GuestsPage() {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
     const [selectedGuest, setSelectedGuest] = useState<GuestProfile | null>(null);
     const [guestDetails, setGuestDetails] = useState<GuestProfile | null>(null);
@@ -128,6 +130,11 @@ export default function GuestsPage() {
         }
     };
 
+    const handleViewDetails = (guest: GuestProfile) => {
+        setSelectedGuest(guest);
+        setDetailsDialogOpen(true);
+    };
+
     const resetForm = () => {
         setFormData({
             firstName: '',
@@ -176,6 +183,15 @@ export default function GuestsPage() {
                 <Badge variant="outline">
                     {guest.bookings?.length || 0}
                 </Badge>
+            ),
+        },
+        {
+            key: 'details',
+            header: 'Szczegóły',
+            render: (guest) => (
+                <Button size="sm" onClick={() => handleViewDetails(guest)}>
+                    Pokaż
+                </Button>
             ),
         },
     ];
@@ -315,6 +331,59 @@ export default function GuestsPage() {
                 description={`Czy na pewno chcesz usunąć gościa ${selectedGuest?.firstName} ${selectedGuest?.lastName}? Ta akcja jest nieodwracalna.`}
             />
 
+            {/* Details Dialog */}
+            <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Szczegóły gościa</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label className="text-muted-foreground">Imię i nazwisko</Label>
+                                <p className="font-medium">{selectedGuest?.firstName} {selectedGuest?.lastName}</p>
+                            </div>
+                            <div>
+                                <Label className="text-muted-foreground">Adres email</Label>
+                                <p className="font-medium">{selectedGuest?.email}</p>
+                            </div>
+                            <div>
+                                <Label className="text-muted-foreground">Telefon</Label>
+                                <p className="font-medium">{selectedGuest?.phoneNumber || '-'}</p>
+                            </div>
+                            <div>
+                                <Label className="text-muted-foreground">Data rejestracji</Label>
+                                <p className="font-medium">
+                                    {selectedGuest?.createdAt ? new Date(selectedGuest.createdAt).toLocaleDateString('pl-PL') : '-'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="border-t pt-4">
+                            <h4 className="font-medium mb-3">Adres zamieszkania</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <Label className="text-muted-foreground">Ulica i numer</Label>
+                                    <p className="font-medium">{selectedGuest?.addressStreet || '-'}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Kod pocztowy</Label>
+                                    <p className="font-medium">{selectedGuest?.zipCode || '-'}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Miasto</Label>
+                                    <p className="font-medium">{selectedGuest?.city || '-'}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-muted-foreground">Kraj</Label>
+                                    <p className="font-medium">{selectedGuest?.country || '-'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Bookings Sheet */}
             <Sheet open={detailsSheetOpen} onOpenChange={setDetailsSheetOpen}>
                 <SheetContent className="sm:max-w-lg">
@@ -335,12 +404,13 @@ export default function GuestsPage() {
                                     className="p-4 border rounded-lg space-y-2"
                                 >
                                     <div className="flex items-center justify-between">
-                                        <span className="font-medium">{booking.reference}</span>
+                                        <span className="font-medium">{booking.bookingReference}</span>
                                         <Badge variant="outline">{booking.status}</Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground">
                                         {new Date(booking.checkInDate).toLocaleDateString('pl-PL')} -{' '}
                                         {new Date(booking.checkOutDate).toLocaleDateString('pl-PL')}
+                                        <span className="ml-1">({formatNights(booking.nightsCount)})</span>
                                     </div>
                                     <div className="text-sm">
                                         Pokoje:{' '}

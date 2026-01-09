@@ -26,6 +26,7 @@ export enum RoomCondition {
 
 export enum TaskType {
   CLEANING = 'CLEANING',
+  CHECKOUT = 'CHECKOUT',
   REPAIR = 'REPAIR',
   AMENITY_REFILL = 'REFILL',
 }
@@ -34,6 +35,12 @@ export enum TaskStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
   DONE = 'DONE',
+}
+
+export enum TaskPriority {
+  URGENT = 'URGENT',     
+  NORMAL = 'NORMAL',     
+  LOW = 'LOW',           
 }
 
 export enum ReservationStatus {

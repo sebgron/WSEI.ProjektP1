@@ -45,6 +45,9 @@ export class Booking {
   @Column({ type: 'int' })
   nightsCount: number;
 
+  @Column({ default: true })
+  wantsDailyCleaning: boolean;
+
   // Relations
   @ManyToOne(() => GuestProfile, (guest) => guest.bookings)
   guest: GuestProfile;

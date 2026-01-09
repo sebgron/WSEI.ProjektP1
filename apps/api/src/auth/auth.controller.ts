@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { LoginDto, RegisterDto } from '@turborepo/shared';
+import { LoginDto, RegisterDto, GuestLoginDto } from '@turborepo/shared';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +23,11 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post('guest-login')
+  async guestLogin(@Body() guestLoginDto: GuestLoginDto) {
+    return this.authService.guestLogin(guestLoginDto);
   }
 
   @UseGuards(JwtAuthGuard)

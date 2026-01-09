@@ -25,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatNights } from '@/lib/utils';
 
 export default function BookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -207,7 +208,7 @@ export default function BookingsPage() {
 
     const columns: Column<Booking>[] = [
         {
-            key: 'reference',
+            key: 'bookingReference',
             header: 'Nr rezerwacji',
         },
         {
@@ -225,6 +226,9 @@ export default function BookingsPage() {
                 <span className="text-sm">
                     {new Date(booking.checkInDate).toLocaleDateString('pl-PL')} -{' '}
                     {new Date(booking.checkOutDate).toLocaleDateString('pl-PL')}
+                    <span className="text-muted-foreground ml-1">
+                        ({formatNights(booking.nightsCount)})
+                    </span>
                 </span>
             ),
         },
@@ -460,7 +464,7 @@ export default function BookingsPage() {
                 onOpenChange={setDeleteDialogOpen}
                 onConfirm={handleDelete}
                 isLoading={isSubmitting}
-                description={`Czy na pewno chcesz usunąć rezerwację ${selectedBooking?.reference}? Ta akcja jest nieodwracalna.`}
+                description={`Czy na pewno chcesz usunąć rezerwację ${selectedBooking?.bookingReference}? Ta akcja jest nieodwracalna.`}
             />
         </div>
     );

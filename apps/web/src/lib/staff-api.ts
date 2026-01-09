@@ -43,5 +43,17 @@ export const staffAPI = {
         status: TaskStatus.PENDING
       }),
     });
+  },
+
+  updateTask: async (id: number, data: Partial<{
+    type: TaskType;
+    description: string;
+    status: TaskStatus;
+    newDoorCode?: string;
+  }>): Promise<IServiceTaskResponse> => {
+    return apiFetch<IServiceTaskResponse>(`service-tasks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   }
 };
