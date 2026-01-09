@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Search } from 'lucide-react';
-import { formatNights } from '@/lib/utils';
+import { formatNights, formatPhoneNumber, formatZipCode } from '@/lib/utils';
 
 export default function GuestsPage() {
     const [guests, setGuests] = useState<GuestProfile[]>([]);
@@ -72,7 +72,10 @@ export default function GuestsPage() {
     const handleCreate = async () => {
         setIsSubmitting(true);
         try {
-            await guestsAPI.create(formData);
+            await guestsAPI.create({
+                ...formData,
+                phoneNumber: formData.phoneNumber.replace(/\s/g, ''),
+            });
             toast.success('Gość został utworzony');
             setCreateDialogOpen(false);
             resetForm();
@@ -89,7 +92,10 @@ export default function GuestsPage() {
         if (!selectedGuest) return;
         setIsSubmitting(true);
         try {
-            await guestsAPI.update(selectedGuest.id, formData);
+            await guestsAPI.update(selectedGuest.id, {
+                ...formData,
+                phoneNumber: formData.phoneNumber.replace(/\s/g, ''),
+            });
             toast.success('Gość został zaktualizowany');
             setEditDialogOpen(false);
             resetForm();
@@ -247,7 +253,7 @@ export default function GuestsPage() {
                 <Input
                     id="phoneNumber"
                     value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: formatPhoneNumber(e.target.value) })}
                 />
             </div>
         </div>

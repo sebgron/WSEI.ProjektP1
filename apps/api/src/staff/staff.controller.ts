@@ -11,17 +11,27 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
+import { RoomsService } from '../rooms/rooms.service';
 import { CreateEmployeeDto, UpdateEmployeeDto } from '@turborepo/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('staff')
 @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class StaffController {
-  constructor(private readonly staffService: StaffService) {}
+  constructor(
+    private readonly staffService: StaffService,
+    private readonly roomsService: RoomsService
+  ) {}
 
   @Get()
   findAll(@Query('position') position?: string) {
     return this.staffService.findAll(position);
+  }
+
+  @Get('rooms/:id/codes')
+  getRoomCodes(@Param('id') id: string) {
+    return this.roomsService.getRoomCodes(+id);
   }
 
   @Get('positions')

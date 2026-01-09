@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { staffAPI } from '@/lib/staff-api';
-import { IServiceTaskResponse, TaskStatus, TaskType } from '@turborepo/shared';
+import { IServiceTaskResponse, TaskStatus, TaskType, IRoomAccessCodesResponse } from '@turborepo/shared';
 import { translations } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 
@@ -18,8 +18,16 @@ import {
     Play,
     CalendarDays,
     CalendarClock,
-    Calendar
+    Calendar,
+    KeyRound
 } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter
+} from '@/components/ui/dialog';
 
 export default function HousekeepingPage() {
     const [tasks, setTasks] = useState<IServiceTaskResponse[]>([]);
@@ -44,12 +52,30 @@ export default function HousekeepingPage() {
     }, []);
 
     const [showDoorCodeDialog, setShowDoorCodeDialog] = useState(false);
+    const [accessCodes, setAccessCodes] = useState<IRoomAccessCodesResponse | null>(null);
+    const [showAccessCodesDialog, setShowAccessCodesDialog] = useState(false);
+    const [loadingCodes, setLoadingCodes] = useState(false);
+
     const [completingTask, setCompletingTask] = useState<IServiceTaskResponse | null>(null);
     const [newDoorCode, setNewDoorCode] = useState('');
 
     const generateDoorCode = () => {
         // Generate random 4 digit code
         return Math.floor(1000 + Math.random() * 9000).toString() + '#';
+    };
+
+    const fetchAccessCodes = async (roomId: number) => {
+        setLoadingCodes(true);
+        try {
+            const data = await staffAPI.getRoomAccessCodes(roomId);
+            setAccessCodes(data);
+            setShowAccessCodesDialog(true);
+        } catch (error) {
+            console.error(error);
+            // toast.error('Nie udało się pobrać kodów');
+        } finally {
+            setLoadingCodes(false);
+        }
     };
 
     const handleStatusChange = async (taskId: number, newStatus: TaskStatus) => {
@@ -179,6 +205,17 @@ export default function HousekeepingPage() {
                                     <p className="text-sm text-muted-foreground">{translations.taskType[currentTask.type]}</p>
                                 </div>
                             </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-4">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => fetchAccessCodes(currentTask.room.id)}
+                                disabled={loadingCodes}
+                            >
+                                {loadingCodes ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <KeyRound className="w-4 h-4 mr-2" />}
+                                Kody
+                            </Button>
                             <Button
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700"
@@ -363,6 +400,63 @@ export default function HousekeepingPage() {
                     </Card>
                 </div>
             )}
+
+            {/* Access Codes Info Dialog */}
+            <Dialog open={showAccessCodesDialog} onOpenChange={setShowAccessCodesDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <KeyRound className="w-5 h-5" />
+                            Kody dostępu - Pokój {currentTask?.room.number}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    {accessCodes && (
+                        <div className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                {accessCodes.doorCode && (
+                                    <div className="bg-muted p-3 rounded-lg text-center space-y-1">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wider">Drzwi</span>
+                                        <p className="font-mono font-bold text-2xl">{accessCodes.doorCode}</p>
+                                    </div>
+                                )}
+                                {accessCodes.keyBoxCode && (
+                                    <div className="bg-muted p-3 rounded-lg text-center space-y-1">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wider">Sejf</span>
+                                        <p className="font-mono font-bold text-2xl">{accessCodes.keyBoxCode}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Entrance Codes */}
+                            {accessCodes.entranceCodes && accessCodes.entranceCodes.length > 0 && (
+                                <div className="space-y-2 pt-2 border-t">
+                                    <span className="text-sm font-medium">Wejście główne / Inne</span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {accessCodes.entranceCodes.map((ec: any, idx: number) => (
+                                            <div key={idx} className="bg-muted/50 p-2 rounded flex flex-col">
+                                                <span className="text-xs text-muted-foreground truncate">{ec.label}</span>
+                                                <span className="font-mono font-bold">{ec.code}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {accessCodes.generalInstructions && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex gap-2 text-sm text-blue-700 dark:text-blue-300">
+                                    <div className="shrink-0 mt-0.5">ℹ️</div>
+                                    <p className="text-xs leading-relaxed">{accessCodes.generalInstructions}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button onClick={() => setShowAccessCodesDialog(false)}>Zamknij</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

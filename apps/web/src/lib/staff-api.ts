@@ -1,5 +1,5 @@
 import { apiFetch } from './api';
-import { IServiceTaskResponse, TaskStatus, TaskType } from '@turborepo/shared';
+import { IServiceTaskResponse, TaskStatus, TaskType, IRoomAccessCodesResponse } from '@turborepo/shared';
 
 export const staffAPI = {
   getTasks: async (filters?: {
@@ -51,9 +51,10 @@ export const staffAPI = {
     status: TaskStatus;
     newDoorCode?: string;
   }>): Promise<IServiceTaskResponse> => {
-    return apiFetch<IServiceTaskResponse>(`service-tasks/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
+
+  },
+
+  getRoomAccessCodes: async (roomId: number): Promise<IRoomAccessCodesResponse> => {
+    return apiFetch<IRoomAccessCodesResponse>(`staff/rooms/${roomId}/codes`);
   }
 };

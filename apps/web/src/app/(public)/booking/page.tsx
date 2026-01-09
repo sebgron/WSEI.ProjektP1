@@ -18,7 +18,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import { cn, formatPhoneNumber, formatZipCode } from '@/lib/utils';
+import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -48,18 +56,31 @@ export default function BookingPage() {
     const [bookingReference, setBookingReference] = useState<string>('');
 
     // Guest Form
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, getValues, formState: { errors } } = useForm({
         defaultValues: {
             firstName: user?.guestProfile?.firstName || user?.employeeProfile?.firstName || '',
             lastName: user?.guestProfile?.lastName || user?.employeeProfile?.lastName || '',
             email: user?.email || '',
-            phoneNumber: user?.guestProfile?.phoneNumber || '',
+            phoneNumber: formatPhoneNumber(user?.guestProfile?.phoneNumber || ''),
             addressStreet: user?.guestProfile?.addressStreet || '',
             city: user?.guestProfile?.city || '',
-            zipCode: user?.guestProfile?.zipCode || '',
-            country: user?.guestProfile?.country || '',
+            zipCode: formatZipCode(user?.guestProfile?.zipCode || ''),
+            country: user?.guestProfile?.country || COUNTRIES.find(c => c.code === DEFAULT_COUNTRY)?.name || 'Polska',
         }
     });
+
+    // Handle country change to update phone prefix
+    const handleCountryChange = (value: string) => {
+        setValue('country', value);
+
+        const countryData = COUNTRIES.find(c => c.name === value);
+        if (countryData) {
+            // Get current phone number
+            // We need to use getValues() but it's not destructured. Let's add it.
+            // Or use setValue with callback? No, setValue doesn't support callback.
+            // We need `getValues` from useForm.
+        }
+    };
 
     const handleSearch = async () => {
         if (!dateRange?.from || !dateRange?.to) {
@@ -98,7 +119,7 @@ export default function BookingPage() {
                     firstName: data.firstName,
                     lastName: data.lastName,
                     email: data.email,
-                    phoneNumber: data.phoneNumber,
+                    phoneNumber: data.phoneNumber.replace(/\s/g, ''),
                     addressStreet: data.addressStreet,
                     city: data.city,
                     zipCode: data.zipCode,
@@ -371,7 +392,15 @@ export default function BookingPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Telefon</Label>
-                                    <Input placeholder="+48 123 456 789" {...register('phoneNumber')} />
+                                    <Input
+                                        placeholder="+48 123 456 789"
+                                        {...register('phoneNumber', {
+                                            onChange: (e) => {
+                                                const formatted = formatPhoneNumber(e.target.value);
+                                                setValue('phoneNumber', formatted);
+                                            }
+                                        })}
+                                    />
                                 </div>
                                 <div className="pt-6 border-t mt-6">
                                     <h3 className="font-semibold mb-4 text-lg">Adres</h3>
@@ -383,7 +412,16 @@ export default function BookingPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Kod pocztowy</Label>
-                                            <Input placeholder="00-000" {...register('zipCode', { required: true })} />
+                                            <Input
+                                                placeholder="00-000"
+                                                {...register('zipCode', {
+                                                    required: true,
+                                                    onChange: (e) => {
+                                                        const formatted = formatZipCode(e.target.value);
+                                                        setValue('zipCode', formatted);
+                                                    }
+                                                })}
+                                            />
                                             {errors.zipCode && <span className="text-destructive text-xs">Wymagane</span>}
                                         </div>
                                         <div className="space-y-2">
@@ -393,7 +431,35 @@ export default function BookingPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Kraj</Label>
-                                            <Input placeholder="Polska" {...register('country', { required: true })} />
+                                            <Select
+                                                onValueChange={(value) => {
+                                                    setValue('country', value);
+                                                    const countryData = COUNTRIES.find(c => c.name === value);
+                                                    if (countryData) {
+                                                        const currentPhone = getValues('phoneNumber');
+                                                        // If empty or just a standard prefix (e.g. "+48 ")
+                                                        // or if it doesn't have ANY digits yet
+                                                        const hasDigits = /\d/.test(currentPhone.replace(/^\+\d+\s?/, ''));
+
+                                                        if (!currentPhone || !hasDigits) {
+                                                            setValue('phoneNumber', `${countryData.phoneCode} `);
+                                                        }
+                                                    }
+                                                }}
+                                                defaultValue={user?.guestProfile?.country || 'Polska'}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Wybierz kraj" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {COUNTRIES.map((country) => (
+                                                        <SelectItem key={country.code} value={country.name}>
+                                                            {country.name} ({country.phoneCode})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <input type="hidden" {...register('country', { required: true })} />
                                             {errors.country && <span className="text-destructive text-xs">Wymagane</span>}
                                         </div>
                                     </div>

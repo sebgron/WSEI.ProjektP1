@@ -1,4 +1,5 @@
 import { RoomCondition } from '../enums';
+import { IAccessConfigResponse } from './access-config.types';
 
 export interface IRoomResponse {
   id: number;
@@ -23,6 +24,14 @@ export interface IRoomFeatureResponse {
   name: string;
   icon: string;
   isActive: boolean;
+}
+
+export interface IRoomAccessCodesResponse {
+  doorCode?: string;
+  keyBoxCode?: string;
+  accessConfig?: IAccessConfigResponse;
+  entranceCodes?: { label: string; code: string }[];
+  generalInstructions?: string;
 }
 
 export interface IAccessConfigBasic {

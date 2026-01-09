@@ -187,4 +187,31 @@ export class RoomsService {
     room.condition = condition;
     return this.roomsRepository.save(room);
   }
+
+  async getRoomCodes(id: number): Promise<{ doorCode?: string; keyBoxCode?: string; accessConfig?: any; entranceCodes?: any[]; generalInstructions?: string }> {
+    // We need to query raw or select specific columns to bypass @Exclude if we were returning entity
+    // But here we construct a custom response object.
+    const room = await this.roomsRepository.findOne({
+      where: { id },
+      relations: ['accessConfig'],
+      select: ['id', 'doorCode', 'keyBoxCode', 'additionalInfo', 'accessConfig'], 
+      // Note: NestJS ClassSerializerInterceptor might still exclude if we returned Room entity directly.
+      // But we will return a plain object/DTO.
+    });
+
+    if (!room) {
+      throw new NotFoundException(`Room with ID ${id} not found`);
+    }
+
+    // Since we selected them explicitly, TypeORM populates them, but @Exclude marks them for stripping by interceptor on serialization.
+    // So we must manually map them to a plain object response that corresponds to IRoomAccessCodesResponse.
+
+    return {
+      doorCode: room.doorCode || undefined,
+      keyBoxCode: room.keyBoxCode || undefined,
+      accessConfig: room.accessConfig,
+      entranceCodes: room.accessConfig?.entranceCodes || [],
+      generalInstructions: room.accessConfig?.generalInstructions,
+    };
+  }
 }
