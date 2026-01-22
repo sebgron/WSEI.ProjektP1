@@ -260,6 +260,10 @@ export class BookingsService {
       booking.totalPrice = totalPrice;
     }
 
+    if (updateDto.nextCleaningRequiresTowels !== undefined) {
+      booking.nextCleaningRequiresTowels = updateDto.nextCleaningRequiresTowels;
+    }
+
     return this.bookingsRepository.save(booking);
   }
 
@@ -389,5 +393,21 @@ export class BookingsService {
     });
 
     return this.serviceTaskRepository.save(task);
+  }
+
+  async toggleDailyCleaning(id: string, enabled: boolean): Promise<Booking> {
+    const booking = await this.findById(id);
+    booking.wantsDailyCleaning = enabled;
+    return this.bookingsRepository.save(booking);
+  }
+
+  async toggleTowels(id: string, requested: boolean): Promise<Booking> {
+    const booking = await this.findById(id);
+    booking.nextCleaningRequiresTowels = requested;
+    
+    if (requested) {
+      
+    }
+    return this.bookingsRepository.save(booking);
   }
 }

@@ -17,6 +17,9 @@ import {
   IServiceTaskResponse,
   IAccessConfigResponse,
   IEntranceCode,
+  SystemConfigKey,
+  SystemConfigDto,
+  UpdateSystemConfigDto,
 } from '@turborepo/shared';
 
 // Re-export types for convenience
@@ -184,6 +187,7 @@ export const roomCategoriesAPI = {
     description?: string;
     pricePerNight: number;
     capacity: number;
+    imagePath?: string;
     featureIds?: number[];
   }): Promise<RoomCategory> => {
     return apiFetch<RoomCategory>('rooms/categories', {
@@ -197,6 +201,7 @@ export const roomCategoriesAPI = {
     description: string;
     pricePerNight: number;
     capacity: number;
+    imagePath: string;
     featureIds: number[];
   }>): Promise<RoomCategory> => {
     return apiFetch<RoomCategory>(`rooms/categories/${id}`, {
@@ -498,5 +503,20 @@ export const accessConfigsAPI = {
 
   delete: async (id: number): Promise<void> => {
     await apiFetch<void>(`access-configs/${id}`, { method: 'DELETE' });
+  },
+};
+
+// ============= SYSTEM CONFIGS API =============
+
+export const systemConfigsAPI = {
+  findAll: async (): Promise<SystemConfigDto[]> => {
+    return apiFetch<SystemConfigDto[]>('system-configs');
+  },
+
+  update: async (key: SystemConfigKey, data: UpdateSystemConfigDto): Promise<SystemConfigDto> => {
+    return apiFetch<SystemConfigDto>(`system-configs/${key}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 };

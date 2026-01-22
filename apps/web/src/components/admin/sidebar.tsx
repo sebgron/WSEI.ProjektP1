@@ -83,6 +83,11 @@ const navItems: NavItem[] = [
         href: '/admin/access-configs',
         icon: <KeyRound className="h-4 w-4" />,
     },
+    {
+        label: 'Konfiguracja systemu',
+        href: '/admin/configuration',
+        icon: <Sparkles className="h-4 w-4" />, // Or Settings icon
+    },
 ];
 
 function NavLink({

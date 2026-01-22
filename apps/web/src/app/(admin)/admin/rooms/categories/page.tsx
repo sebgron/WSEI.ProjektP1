@@ -18,6 +18,129 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+const AVAILABLE_IMAGES = [
+    { name: 'Standard', path: '/images/rooms/standard.png' },
+    { name: 'Deluxe', path: '/images/rooms/deluxe.png' },
+    { name: 'Suite', path: '/images/rooms/suite.png' },
+];
+
+interface FormContentProps {
+    formData: {
+        name: string;
+        description: string;
+        pricePerNight: string;
+        capacity: string;
+        imagePath: string;
+        featureIds: number[];
+    };
+    setFormData: (data: any) => void;
+    features: RoomFeature[];
+    toggleFeature: (id: number) => void;
+}
+
+const FormContent = ({ formData, setFormData, features, toggleFeature }: FormContentProps) => (
+    <div className="space-y-4 py-4">
+        <div className="space-y-2">
+            <Label htmlFor="name">Nazwa</Label>
+            <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="description">Opis</Label>
+            <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <Label>Zdjęcie</Label>
+            <div className="grid grid-cols-3 gap-4 mt-2">
+                {AVAILABLE_IMAGES.map((img) => (
+                    <div
+                        key={img.path}
+                        className={`
+                            relative aspect-video cursor-pointer rounded-lg overflow-hidden border-2 transition-all
+                            ${formData.imagePath === img.path ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-primary/50'}
+                        `}
+                        onClick={() => setFormData({ ...formData, imagePath: img.path })}
+                    >
+                        <img
+                            src={img.path}
+                            alt={img.name}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <span className="text-white font-medium text-sm">{img.name}</span>
+                        </div>
+                        {formData.imagePath === img.path && (
+                            <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+            {/* Optional: Allow clearing selection */}
+            {formData.imagePath && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, imagePath: '' })}
+                    className="h-8 text-xs mt-1 text-muted-foreground"
+                >
+                    Wyczyść wybór
+                </Button>
+            )}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="pricePerNight">Cena bazowa (zł)</Label>
+                <Input
+                    id="pricePerNight"
+                    type="number"
+                    step="0.01"
+                    value={formData.pricePerNight}
+                    onChange={(e) => setFormData({ ...formData, pricePerNight: e.target.value })}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="capacity">Maks. liczba osób</Label>
+                <Input
+                    id="capacity"
+                    type="number"
+                    value={formData.capacity}
+                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                />
+            </div>
+        </div>
+        <div className="space-y-2">
+            <Label>Udogodnienia</Label>
+            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[60px]">
+                {features.map((feature) => (
+                    <Badge
+                        key={feature.id}
+                        variant={formData.featureIds.includes(feature.id) ? 'default' : 'outline'}
+                        className="cursor-pointer"
+                        onClick={() => toggleFeature(feature.id)}
+                    >
+                        {feature.name}
+                    </Badge>
+                ))}
+                {features.length === 0 && (
+                    <span className="text-sm text-muted-foreground">Brak dostępnych udogodnień</span>
+                )}
+            </div>
+        </div>
+    </div>
+);
+
 export default function RoomCategoriesPage() {
     const [categories, setCategories] = useState<RoomCategory[]>([]);
     const [features, setFeatures] = useState<RoomFeature[]>([]);
@@ -36,6 +159,7 @@ export default function RoomCategoriesPage() {
         description: '',
         pricePerNight: '',
         capacity: '',
+        imagePath: '',
         featureIds: [] as number[],
     });
 
@@ -68,6 +192,7 @@ export default function RoomCategoriesPage() {
                 description: formData.description || undefined,
                 pricePerNight: parseFloat(formData.pricePerNight),
                 capacity: parseInt(formData.capacity),
+                imagePath: formData.imagePath || undefined,
                 featureIds: formData.featureIds.length > 0 ? formData.featureIds : undefined,
             });
             toast.success('Kategoria została utworzona');
@@ -91,6 +216,7 @@ export default function RoomCategoriesPage() {
                 description: formData.description,
                 pricePerNight: parseFloat(formData.pricePerNight),
                 capacity: parseInt(formData.capacity),
+                imagePath: formData.imagePath,
                 featureIds: formData.featureIds,
             });
             toast.success('Kategoria została zaktualizowana');
@@ -128,6 +254,7 @@ export default function RoomCategoriesPage() {
             description: '',
             pricePerNight: '',
             capacity: '',
+            imagePath: '',
             featureIds: [],
         });
         setSelectedCategory(null);
@@ -140,6 +267,7 @@ export default function RoomCategoriesPage() {
             description: category.description || '',
             pricePerNight: category.pricePerNight != null ? category.pricePerNight.toString() : '',
             capacity: category.capacity != null ? category.capacity.toString() : '',
+            imagePath: category.imagePath || '',
             featureIds: category.features?.map((f) => f.id) || [],
         });
         setEditDialogOpen(true);
@@ -206,66 +334,6 @@ export default function RoomCategoriesPage() {
         },
     ];
 
-    const FormContent = () => (
-        <div className="space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="name">Nazwa</Label>
-                <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="description">Opis</Label>
-                <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="pricePerNight">Cena bazowa (zł)</Label>
-                    <Input
-                        id="pricePerNight"
-                        type="number"
-                        step="0.01"
-                        value={formData.pricePerNight}
-                        onChange={(e) => setFormData({ ...formData, pricePerNight: e.target.value })}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="capacity">Maks. liczba osób</Label>
-                    <Input
-                        id="capacity"
-                        type="number"
-                        value={formData.capacity}
-                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label>Udogodnienia</Label>
-                <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[60px]">
-                    {features.map((feature) => (
-                        <Badge
-                            key={feature.id}
-                            variant={formData.featureIds.includes(feature.id) ? 'default' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleFeature(feature.id)}
-                        >
-                            {feature.name}
-                        </Badge>
-                    ))}
-                    {features.length === 0 && (
-                        <span className="text-sm text-muted-foreground">Brak dostępnych udogodnień</span>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-
     return (
         <div>
             <PageHeader
@@ -295,7 +363,12 @@ export default function RoomCategoriesPage() {
                     <DialogHeader>
                         <DialogTitle>Dodaj kategorię</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent
+                        formData={formData}
+                        setFormData={setFormData}
+                        features={features}
+                        toggleFeature={toggleFeature}
+                    />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                             Anuluj
@@ -313,7 +386,12 @@ export default function RoomCategoriesPage() {
                     <DialogHeader>
                         <DialogTitle>Edytuj kategorię</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent
+                        formData={formData}
+                        setFormData={setFormData}
+                        features={features}
+                        toggleFeature={toggleFeature}
+                    />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                             Anuluj

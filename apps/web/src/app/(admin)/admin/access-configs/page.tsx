@@ -19,6 +19,77 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 
+interface FormContentProps {
+    formData: {
+        name: string;
+        generalInstructions: string;
+        entranceCodes: { label: string; code: string }[];
+    };
+    setFormData: (data: any) => void;
+    addCode: () => void;
+    removeCode: (index: number) => void;
+    updateCode: (index: number, field: 'label' | 'code', value: string) => void;
+}
+
+const FormContent = ({ formData, setFormData, addCode, removeCode, updateCode }: FormContentProps) => (
+    <div className="space-y-4 py-4">
+        <div className="space-y-2">
+            <Label htmlFor="name">Nazwa</Label>
+            <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="generalInstructions">Instrukcje ogólne</Label>
+            <Input
+                id="generalInstructions"
+                value={formData.generalInstructions}
+                onChange={(e) => setFormData({ ...formData, generalInstructions: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <Label>Kody dostępu</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addCode}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Dodaj kod
+                </Button>
+            </div>
+            <div className="space-y-2">
+                {formData.entranceCodes.map((code, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <Input
+                            placeholder="Etykieta"
+                            value={code.label}
+                            onChange={(e) => updateCode(index, 'label', e.target.value)}
+                            className="flex-1"
+                        />
+                        <Input
+                            placeholder="Kod"
+                            value={code.code}
+                            onChange={(e) => updateCode(index, 'code', e.target.value)}
+                            className="flex-1"
+                        />
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeCode(index)}
+                        >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                ))}
+                {formData.entranceCodes.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Brak kodów dostępu</p>
+                )}
+            </div>
+        </div>
+    </div>
+);
+
 export default function AccessConfigsPage() {
     const [configs, setConfigs] = useState<AccessConfiguration[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -194,65 +265,6 @@ export default function AccessConfigsPage() {
         },
     ];
 
-    const FormContent = () => (
-        <div className="space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="name">Nazwa</Label>
-                <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="generalInstructions">Instrukcje ogólne</Label>
-                <Input
-                    id="generalInstructions"
-                    value={formData.generalInstructions}
-                    onChange={(e) => setFormData({ ...formData, generalInstructions: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label>Kody dostępu</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addCode}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Dodaj kod
-                    </Button>
-                </div>
-                <div className="space-y-2">
-                    {formData.entranceCodes.map((code, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <Input
-                                placeholder="Etykieta"
-                                value={code.label}
-                                onChange={(e) => updateCode(index, 'label', e.target.value)}
-                                className="flex-1"
-                            />
-                            <Input
-                                placeholder="Kod"
-                                value={code.code}
-                                onChange={(e) => updateCode(index, 'code', e.target.value)}
-                                className="flex-1"
-                            />
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeCode(index)}
-                            >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </div>
-                    ))}
-                    {formData.entranceCodes.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Brak kodów dostępu</p>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-
     return (
         <div>
             <PageHeader
@@ -282,7 +294,13 @@ export default function AccessConfigsPage() {
                     <DialogHeader>
                         <DialogTitle>Dodaj konfigurację</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent
+                        formData={formData}
+                        setFormData={setFormData}
+                        addCode={addCode}
+                        removeCode={removeCode}
+                        updateCode={updateCode}
+                    />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                             Anuluj
@@ -300,7 +318,13 @@ export default function AccessConfigsPage() {
                     <DialogHeader>
                         <DialogTitle>Edytuj konfigurację</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent
+                        formData={formData}
+                        setFormData={setFormData}
+                        addCode={addCode}
+                        removeCode={removeCode}
+                        updateCode={updateCode}
+                    />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                             Anuluj

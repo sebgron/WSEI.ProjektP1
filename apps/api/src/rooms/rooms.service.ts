@@ -178,8 +178,7 @@ export class RoomsService {
   }
 
   async remove(id: number): Promise<void> {
-    const room = await this.findById(id);
-    await this.roomsRepository.remove(room);
+    await this.roomsRepository.softDelete(id);
   }
 
   async updateCondition(id: number, condition: RoomCondition): Promise<Room> {

@@ -7,7 +7,11 @@ import { IServiceTaskResponse, TaskStatus, TaskType, IRoomAccessCodesResponse } 
 import { translations } from '@/lib/admin-api';
 import { Button } from '@/components/ui/button';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { useInterval } from '@/hooks/use-interval';
+import {
+    Card,
+    CardContent
+} from '@/components/ui/card';
 import {
     CheckCircle2,
     Clock,
@@ -34,22 +38,28 @@ export default function HousekeepingPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [dateFilter, setDateFilter] = useState<'today' | 'tomorrow' | 'later'>('today');
 
-    const fetchTasks = async () => {
-        setIsLoading(true);
+    const fetchTasks = async (showLoading = true) => {
+        if (showLoading) setIsLoading(true);
         try {
             const data = await staffAPI.getTasks();
             setTasks(data);
         } catch (error) {
             console.error(error);
-            toast.error('Błąd podczas pobierania zadań');
+            // Don't show toast on background refresh failure to avoid spamming
+            if (showLoading) toast.error('Błąd podczas pobierania zadań');
         } finally {
-            setIsLoading(false);
+            if (showLoading) setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchTasks();
     }, []);
+
+    // Poll for updates every 5 seconds
+    useInterval(() => {
+        fetchTasks(false);
+    }, 5000);
 
     const [showDoorCodeDialog, setShowDoorCodeDialog] = useState(false);
     const [accessCodes, setAccessCodes] = useState<IRoomAccessCodesResponse | null>(null);

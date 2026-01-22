@@ -239,11 +239,19 @@ export default function BookingPage() {
                         {availableRooms.map((item) => {
                             const currentCount = selectedRooms[item.category.id] || 0;
                             return (
-                                <Card key={item.category.id} className={cn("overflow-hidden flex flex-col transition-all", currentCount > 0 ? 'ring-2 ring-primary' : '')}>
+                                <Card key={item.category.id} className={cn("overflow-hidden flex flex-col transition-all group hover:shadow-xl", currentCount > 0 ? 'ring-2 ring-primary' : '')}>
                                     <div className="aspect-video bg-muted relative">
-                                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                                            <BedDouble className="w-12 h-12 opacity-20" />
-                                        </div>
+                                        {item.category.imagePath ? (
+                                            <img
+                                                src={item.category.imagePath}
+                                                alt={item.category.name}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                                                <BedDouble className="w-12 h-12 opacity-20" />
+                                            </div>
+                                        )}
                                         {currentCount > 0 && (
                                             <div className="absolute top-2 right-2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg animate-in zoom-in">
                                                 {currentCount}
@@ -376,24 +384,24 @@ export default function BookingPage() {
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <Label>Imię</Label>
-                                        <Input placeholder="Jan" {...register('firstName', { required: true })} />
+                                        <Input placeholder="Podaj imię" {...register('firstName', { required: true })} />
                                         {errors.firstName && <span className="text-destructive text-xs">Wymagane</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Nazwisko</Label>
-                                        <Input placeholder="Kowalski" {...register('lastName', { required: true })} />
+                                        <Input placeholder="Podaj nazwisko" {...register('lastName', { required: true })} />
                                         {errors.lastName && <span className="text-destructive text-xs">Wymagane</span>}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Email</Label>
-                                    <Input type="email" placeholder="jan@example.com" {...register('email', { required: true })} />
+                                    <Input type="email" placeholder="Podaj adres email" {...register('email', { required: true })} />
                                     {errors.email && <span className="text-destructive text-xs">Wymagane</span>}
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Telefon</Label>
                                     <Input
-                                        placeholder="+48 123 456 789"
+                                        placeholder="Podaj numer telefonu"
                                         {...register('phoneNumber', {
                                             onChange: (e) => {
                                                 const formatted = formatPhoneNumber(e.target.value);
@@ -407,13 +415,13 @@ export default function BookingPage() {
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="col-span-2 space-y-2">
                                             <Label>Ulica</Label>
-                                            <Input placeholder="Polna 12/3" {...register('addressStreet', { required: true })} />
+                                            <Input placeholder="Podaj ulicę i numer domu/mieszkania" {...register('addressStreet', { required: true })} />
                                             {errors.addressStreet && <span className="text-destructive text-xs">Wymagane</span>}
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Kod pocztowy</Label>
                                             <Input
-                                                placeholder="00-000"
+                                                placeholder="Podaj kod pocztowy"
                                                 {...register('zipCode', {
                                                     required: true,
                                                     onChange: (e) => {
@@ -426,7 +434,7 @@ export default function BookingPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Miasto</Label>
-                                            <Input placeholder="Warszawa" {...register('city', { required: true })} />
+                                            <Input placeholder="Podaj miasto" {...register('city', { required: true })} />
                                             {errors.city && <span className="text-destructive text-xs">Wymagane</span>}
                                         </div>
                                         <div className="space-y-2">

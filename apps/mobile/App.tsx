@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 const ANDROID_URL = 'http://10.0.2.2:3001';
-const IOS_URL = 'http://localhost:3001';
+const IOS_URL = 'http://10.0.0.43:3001';
 const APP_URL = Platform.OS === 'android' ? ANDROID_URL : IOS_URL;
 
 export default function App() {

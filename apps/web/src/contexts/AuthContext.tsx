@@ -17,9 +17,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { usePathname } from 'next/navigation';
+
+
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'ADMIN';
@@ -27,26 +32,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = Cookies.get('token');
+      let tokenName = 'token';
+      if (pathname?.startsWith('/admin')) tokenName = 'admin_token';
+      else if (pathname?.startsWith('/guest')) tokenName = 'guest_token';
+
+      const token = Cookies.get(tokenName) || Cookies.get('token');
+
       if (token) {
         try {
           const userData = await authAPI.me();
           setUser(userData);
         } catch {
-          Cookies.remove('token');
+          Cookies.remove(tokenName);
           setUser(null);
         }
+      } else {
+        setUser(null);
       }
       setLoading(false);
     };
 
     initAuth();
-  }, []);
+  }, [pathname]);
 
   const login = async (credentials: LoginData): Promise<User> => {
     try {
       const response = await authAPI.login(credentials);
-      Cookies.set('token', response.access_token, { expires: 7 });
+
+      // Determine token name based on role
+      if (response.user.role === 'USER') {
+        Cookies.set('guest_token', response.access_token, { expires: 7 });
+      } else {
+        Cookies.set('admin_token', response.access_token, { expires: 7 });
+      }
+
+      // Legacy cleanup
+      Cookies.remove('token');
+
       setUser(response.user);
       return response.user;
     } catch (error) {
@@ -57,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const guestLogin = async (credentials: GuestLoginData) => {
     try {
       const response = await authAPI.guestLogin(credentials);
-      Cookies.set('token', response.access_token, { expires: 1 });
+      Cookies.set('guest_token', response.access_token, { expires: 7 }); // Bump to 7 days
+      // Legacy cleanup
+      Cookies.remove('token');
+
       setUser(response.user);
     } catch (error) {
       throw error;
@@ -65,13 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    if (pathname?.startsWith('/admin')) Cookies.remove('admin_token');
+    else if (pathname?.startsWith('/guest')) Cookies.remove('guest_token');
+
     Cookies.remove('token');
-    // Also remove Authentication cookie if used in older code
     Cookies.remove('Authentication');
     setUser(null);
-    // Optional: Redirect to login handled by components or router
-    // window.location.href = '/login'; 
   };
+
 
   const value = {
     user,

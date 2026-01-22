@@ -15,6 +15,7 @@ export interface IBookingResponse {
   bookingRooms?: IBookingRoomResponse[];
   createdAt: string;
   wantsDailyCleaning?: boolean;
+  nextCleaningRequiresTowels?: boolean;
 }
 
 export interface IBookingRoomResponse {

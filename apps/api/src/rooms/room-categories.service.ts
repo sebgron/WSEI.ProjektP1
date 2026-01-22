@@ -41,6 +41,7 @@ export class RoomCategoriesService {
       description: createDto.description,
       pricePerNight: createDto.pricePerNight,
       capacity: createDto.capacity,
+      imagePath: createDto.imagePath,
       features,
     });
 
@@ -54,6 +55,7 @@ export class RoomCategoriesService {
     if (updateDto.description !== undefined) category.description = updateDto.description;
     if (updateDto.pricePerNight !== undefined) category.pricePerNight = updateDto.pricePerNight;
     if (updateDto.capacity !== undefined) category.capacity = updateDto.capacity;
+    if (updateDto.imagePath !== undefined) category.imagePath = updateDto.imagePath;
 
     if (updateDto.featureIds) {
       category.features = await this.featuresRepository.findBy({
@@ -65,7 +67,6 @@ export class RoomCategoriesService {
   }
 
   async remove(id: number): Promise<void> {
-    const category = await this.findById(id);
-    await this.categoriesRepository.remove(category);
+    await this.categoriesRepository.softDelete(id);
   }
 }

@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { RoomCategory } from './room-category.entity';
@@ -17,6 +18,9 @@ import { RoomCondition } from '@turborepo/shared';
 export class Room {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @Column({ unique: true })
   number: string;

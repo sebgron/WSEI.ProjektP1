@@ -17,20 +17,34 @@ export function formatNights(count: number): string {
 }
 
 export function formatPhoneNumber(value: string): string {
-  // Remove all non-digit characters except initial '+'
-  const cleaned = value.replace(/(?!^\+)[^\d]/g, '');
-  
-  // If no digits, return empty
+  if (!value) return '';
+
+  let cleaned = value.replace(/(?!^\+)[^\d]/g, '');
+
   if (!cleaned) return '';
 
-  // If it starts with +, keep it separate
   const hasPlus = cleaned.startsWith('+');
+  
+  if (cleaned.startsWith('+48')) {
+    const rest = cleaned.slice(3);
+    const chunks = rest.match(/.{1,3}/g) || [];
+    return `+48 ${chunks.join(' ')}`.trim();
+  }
+
+  if (!hasPlus && cleaned.startsWith('48') && cleaned.length >= 9) {
+      const rest = cleaned.slice(2);
+      const chunks = rest.match(/.{1,3}/g) || [];
+      return `+48 ${chunks.join(' ')}`.trim();
+  }
+
+  if (!hasPlus && cleaned.length === 9) {
+      const chunks = cleaned.match(/.{1,3}/g) || [];
+      return `+48 ${chunks.join(' ')}`.trim();
+  }
+
   const digits = hasPlus ? cleaned.slice(1) : cleaned;
-  
   const chunks = digits.match(/.{1,3}/g) || [];
-  
   const formatted = chunks.join(' ');
-  
   
   return hasPlus ? `+${formatted}` : formatted;
 }

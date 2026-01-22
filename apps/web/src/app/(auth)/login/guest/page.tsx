@@ -108,8 +108,8 @@ export default function GuestLoginPage() {
                                     />
                                 </div>
                             </CardContent>
-                            <CardFooter>
-                                <Button className="w-full" type="submit" disabled={isLoading}>
+                            <CardFooter className="pt-6">
+                                <Button className="w-full mt-2" type="submit" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Zaloguj się
                                 </Button>
@@ -164,10 +164,10 @@ export default function GuestLoginPage() {
                                     />
                                 </div>
                             </CardContent>
-                            <CardFooter>
-                                <Button className="w-full" type="submit" disabled={isLoading}>
+                            <CardFooter className="pt-6">
+                                <Button className="w-full mt-2" type="submit" disabled={isLoading}>
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Wejdź
+                                    Sprawdź rezerwację
                                 </Button>
                             </CardFooter>
                         </form>

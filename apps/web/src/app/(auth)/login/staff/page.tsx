@@ -103,7 +103,7 @@ export default function StaffLoginPage() {
                             />
                         </div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="pt-6">
                         <Button className="w-full h-11" type="submit" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Zaloguj się

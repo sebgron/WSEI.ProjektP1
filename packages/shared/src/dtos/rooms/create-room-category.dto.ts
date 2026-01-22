@@ -9,6 +9,10 @@ export class CreateRoomCategoryDto {
   @IsOptional()
   description?: string;
 
+  @IsString()
+  @IsOptional()
+  imagePath?: string;
+
   @IsNumber()
   @Min(0)
   pricePerNight: number;

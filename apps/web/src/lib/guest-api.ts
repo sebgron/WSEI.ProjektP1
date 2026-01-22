@@ -53,10 +53,24 @@ export const guestAPI = {
      });
   },
 
-  toggleDailyCleaning: async (bookingId: string, wantsDailyCleaning: boolean): Promise<IBookingResponse> => {
+  toggleDailyCleaning: async (bookingId: string, enabled: boolean): Promise<IBookingResponse> => {
      return apiFetch<IBookingResponse>(`bookings/${bookingId}/daily-cleaning`, {
         method: 'PATCH',
-        body: JSON.stringify({ wantsDailyCleaning }),
+        body: JSON.stringify({ enabled }),
+     });
+  },
+
+  payForBooking: async (bookingId: string): Promise<IBookingResponse> => {
+     return apiFetch<IBookingResponse>(`bookings/${bookingId}/payment-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ paymentStatus: 'PAID' }),
+     });
+  },
+
+  toggleNextCleaningRequiresTowels: async (bookingId: string, requested: boolean): Promise<IBookingResponse> => {
+     return apiFetch<IBookingResponse>(`bookings/${bookingId}/towels`, {
+        method: 'PATCH',
+        body: JSON.stringify({ requested }),
      });
   },
 

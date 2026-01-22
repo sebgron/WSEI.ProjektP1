@@ -16,6 +16,7 @@ export interface IRoomCategoryResponse {
   description?: string;
   pricePerNight: number;
   capacity: number;
+  imagePath?: string;
   features?: IRoomFeatureResponse[];
 }
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable, DeleteDateColumn } from 'typeorm';
 import { Room } from './room.entity';
 import { RoomFeature } from './room-feature.entity';
 
@@ -6,6 +6,9 @@ import { RoomFeature } from './room-feature.entity';
 export class RoomCategory {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @Column()
   name: string;
@@ -21,6 +24,9 @@ export class RoomCategory {
 
   @OneToMany(() => Room, (room) => room.category)
   physicalRooms: Room[];
+
+  @Column({ nullable: true })
+  imagePath: string;
 
   @ManyToMany(() => RoomFeature)
   @JoinTable()

@@ -23,9 +23,10 @@ export class AuthService {
         { email: identifier },
         { username: identifier }
       ],
-      select: ['id', 'email', 'passwordHash', 'role'],
+      select: ['id', 'email', 'passwordHash', 'role'], 
       relations: ['guestProfile', 'employeeProfile'],
     });
+
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
       const { passwordHash, ...result } = user;
       return result;

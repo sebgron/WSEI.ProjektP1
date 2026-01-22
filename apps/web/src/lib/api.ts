@@ -22,7 +22,13 @@ function getCookie(name: string): string | null {
 }
 
 export async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const token = getCookie('Authentication') || getCookie('accessToken') || getCookie('token');
+  let tokenName = 'token';
+  if (typeof window !== 'undefined') {
+      if (window.location.pathname.startsWith('/admin')) tokenName = 'admin_token';
+      else if (window.location.pathname.startsWith('/guest')) tokenName = 'guest_token';
+  }
+
+  const token = getCookie(tokenName) || getCookie('token') || getCookie('Authentication') || getCookie('accessToken');
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

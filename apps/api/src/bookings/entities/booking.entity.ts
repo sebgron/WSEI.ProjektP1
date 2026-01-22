@@ -48,6 +48,9 @@ export class Booking {
   @Column({ default: true })
   wantsDailyCleaning: boolean;
 
+  @Column({ default: false })
+  nextCleaningRequiresTowels: boolean;
+
   // Relations
   @ManyToOne(() => GuestProfile, (guest) => guest.bookings)
   guest: GuestProfile;

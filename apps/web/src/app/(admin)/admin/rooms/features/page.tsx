@@ -40,6 +40,61 @@ const iconOptions = [
     { value: 'hairdryer', label: 'Suszarka' },
 ];
 
+interface FormContentProps {
+    formData: {
+        name: string;
+        icon: string;
+        isActive: boolean;
+    };
+    setFormData: (data: any) => void;
+}
+
+const FormContent = ({ formData, setFormData }: FormContentProps) => (
+    <div className="space-y-4 py-4">
+        <div className="space-y-2">
+            <Label htmlFor="name">Nazwa</Label>
+            <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="icon">Ikona</Label>
+            <Select
+                value={formData.icon}
+                onValueChange={(value) => setFormData({ ...formData, icon: value })}
+            >
+                <SelectTrigger>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {iconOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label} ({opt.value})
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="isActive">Status</Label>
+            <Select
+                value={formData.isActive ? 'true' : 'false'}
+                onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
+            >
+                <SelectTrigger>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="true">Aktywne</SelectItem>
+                    <SelectItem value="false">Nieaktywne</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+    </div>
+);
+
 export default function RoomFeaturesPage() {
     const [features, setFeatures] = useState<RoomFeature[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -200,52 +255,6 @@ export default function RoomFeaturesPage() {
         },
     ];
 
-    const FormContent = () => (
-        <div className="space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="name">Nazwa</Label>
-                <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="icon">Ikona</Label>
-                <Select
-                    value={formData.icon}
-                    onValueChange={(value) => setFormData({ ...formData, icon: value })}
-                >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {iconOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label} ({opt.value})
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="isActive">Status</Label>
-                <Select
-                    value={formData.isActive ? 'true' : 'false'}
-                    onValueChange={(value) => setFormData({ ...formData, isActive: value === 'true' })}
-                >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="true">Aktywne</SelectItem>
-                        <SelectItem value="false">Nieaktywne</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-    );
-
     return (
         <div>
             <PageHeader
@@ -275,7 +284,7 @@ export default function RoomFeaturesPage() {
                     <DialogHeader>
                         <DialogTitle>Dodaj udogodnienie</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent formData={formData} setFormData={setFormData} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                             Anuluj
@@ -293,7 +302,7 @@ export default function RoomFeaturesPage() {
                     <DialogHeader>
                         <DialogTitle>Edytuj udogodnienie</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent formData={formData} setFormData={setFormData} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                             Anuluj

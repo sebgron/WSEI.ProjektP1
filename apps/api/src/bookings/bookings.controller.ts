@@ -122,5 +122,23 @@ export class BookingsController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.bookingsService.remove(id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/daily-cleaning')
+  toggleDailyCleaning(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { enabled: boolean },
+  ) {
+    return this.bookingsService.toggleDailyCleaning(id, body.enabled);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/towels')
+  toggleTowels(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { requested: boolean },
+  ) {
+    return this.bookingsService.toggleTowels(id, body.requested);
+  }
 }
 

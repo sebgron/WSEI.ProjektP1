@@ -1,4 +1,4 @@
-import { IsOptional, IsDateString, IsString } from 'class-validator';
+import { IsOptional, IsDateString, IsString, IsBoolean } from 'class-validator';
 
 export class UpdateBookingDto {
   @IsDateString()
@@ -12,4 +12,8 @@ export class UpdateBookingDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  nextCleaningRequiresTowels?: boolean;
 }

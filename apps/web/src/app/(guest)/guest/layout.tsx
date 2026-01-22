@@ -25,7 +25,7 @@ export default function GuestLayout({
 
     return (
         <div className="min-h-screen flex flex-col bg-muted/30">
-            <header className="sticky top-0 z-10 w-full bg-background border-b">
+            <header className="sticky top-0 z-50 w-full bg-background border-b">
                 <div className="max-w-lg mx-auto px-4">
                     <div className="flex h-14 items-center justify-between">
                         <Link href="/guest/my-bookings" className="flex items-center gap-2 font-semibold text-primary">

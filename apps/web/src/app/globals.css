@@ -157,3 +157,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Force hide Next.js dev indicators */
+[data-nextjs-toast],
+div[class*="nextjs-toast"],
+div[id="__next-build-watcher"],
+nextjs-portal {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

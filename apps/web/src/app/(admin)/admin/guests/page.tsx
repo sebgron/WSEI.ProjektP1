@@ -26,6 +26,56 @@ import { Label } from '@/components/ui/label';
 import { Search } from 'lucide-react';
 import { formatNights, formatPhoneNumber, formatZipCode } from '@/lib/utils';
 
+interface FormContentProps {
+    formData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phoneNumber: string;
+    };
+    setFormData: (data: any) => void;
+}
+
+const FormContent = ({ formData, setFormData }: FormContentProps) => (
+    <div className="space-y-4 py-4">
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="firstName">Imię</Label>
+                <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="lastName">Nazwisko</Label>
+                <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+            </div>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="phoneNumber">Numer telefonu</Label>
+            <Input
+                id="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: formatPhoneNumber(e.target.value) })}
+            />
+        </div>
+    </div>
+);
+
 export default function GuestsPage() {
     const [guests, setGuests] = useState<GuestProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -180,7 +230,7 @@ export default function GuestsPage() {
         {
             key: 'phoneNumber',
             header: 'Telefon',
-            render: (guest) => guest.phoneNumber || '-',
+            render: (guest) => guest.phoneNumber ? formatPhoneNumber(guest.phoneNumber) : '-',
         },
         {
             key: 'bookings',
@@ -218,46 +268,6 @@ export default function GuestsPage() {
             separator: true,
         },
     ];
-
-    const FormContent = () => (
-        <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="firstName">Imię</Label>
-                    <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="lastName">Nazwisko</Label>
-                    <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Numer telefonu</Label>
-                <Input
-                    id="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: formatPhoneNumber(e.target.value) })}
-                />
-            </div>
-        </div>
-    );
 
     return (
         <div>
@@ -298,7 +308,7 @@ export default function GuestsPage() {
                     <DialogHeader>
                         <DialogTitle>Dodaj gościa</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent formData={formData} setFormData={setFormData} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                             Anuluj
@@ -316,7 +326,7 @@ export default function GuestsPage() {
                     <DialogHeader>
                         <DialogTitle>Edytuj gościa</DialogTitle>
                     </DialogHeader>
-                    <FormContent />
+                    <FormContent formData={formData} setFormData={setFormData} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                             Anuluj
@@ -355,7 +365,7 @@ export default function GuestsPage() {
                             </div>
                             <div>
                                 <Label className="text-muted-foreground">Telefon</Label>
-                                <p className="font-medium">{selectedGuest?.phoneNumber || '-'}</p>
+                                <p className="font-medium">{selectedGuest?.phoneNumber ? formatPhoneNumber(selectedGuest.phoneNumber) : '-'}</p>
                             </div>
                             <div>
                                 <Label className="text-muted-foreground">Data rejestracji</Label>
