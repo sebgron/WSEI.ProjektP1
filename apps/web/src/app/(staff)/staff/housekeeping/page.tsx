@@ -387,7 +387,7 @@ export default function HousekeepingPage() {
                                         type="text"
                                         value={newDoorCode}
                                         onChange={(e) => setNewDoorCode(e.target.value)}
-                                        className="flex-1 text-2xl font-mono font-bold bg-background border rounded px-3 py-2 text-center tracking-widest"
+                                        className="flex-1 min-w-0 text-xl font-mono font-bold bg-background border rounded px-3 py-2 text-center tracking-wider"
                                     />
                                     <Button variant="outline" size="icon" onClick={() => setNewDoorCode(generateDoorCode())}>
                                         <Clock className="w-4 h-4" />

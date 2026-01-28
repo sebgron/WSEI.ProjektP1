@@ -17,4 +17,8 @@ export class UpdateRoomDto {
   @IsNumber()
   @IsOptional()
   accessConfigId?: number | null;
+
+  @IsString()
+  @IsOptional()
+  doorCode?: string;
 }

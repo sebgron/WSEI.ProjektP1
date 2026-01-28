@@ -140,6 +140,7 @@ export const roomsAPI = {
     categoryId: number;
     condition?: RoomCondition;
     accessConfigId?: number;
+    doorCode?: string;
   }): Promise<Room> => {
     return apiFetch<Room>('rooms', {
       method: 'POST',
@@ -152,6 +153,7 @@ export const roomsAPI = {
     categoryId: number;
     condition: RoomCondition;
     accessConfigId: number | null;
+    doorCode: string;
   }>): Promise<Room> => {
     return apiFetch<Room>(`rooms/${id}`, {
       method: 'PATCH',

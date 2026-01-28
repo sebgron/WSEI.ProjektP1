@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       let tokenName = 'token';
-      if (pathname?.startsWith('/admin')) tokenName = 'admin_token';
+      if (pathname?.startsWith('/admin') || pathname?.startsWith('/staff')) tokenName = 'admin_token';
       else if (pathname?.startsWith('/guest')) tokenName = 'guest_token';
 
       const token = Cookies.get(tokenName) || Cookies.get('token');

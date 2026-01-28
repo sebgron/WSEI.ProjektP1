@@ -51,7 +51,10 @@ export const staffAPI = {
     status: TaskStatus;
     newDoorCode?: string;
   }>): Promise<IServiceTaskResponse> => {
-
+    return apiFetch<IServiceTaskResponse>(`service-tasks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 
   getRoomAccessCodes: async (roomId: number): Promise<IRoomAccessCodesResponse> => {

@@ -39,6 +39,21 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Request() req) {
+    if (req.user.isGuestLogin) {
+      const guest = await this.authService.findGuestById(req.user.id);
+      if (!guest) {
+        throw new Error('Guest profile not found');
+      }
+      return {
+        id: guest.id,
+        email: guest.email,
+        role: req.user.role,
+        firstName: guest.firstName,
+        lastName: guest.lastName,
+        guestProfile: guest,
+      };
+    }
+
     const user = await this.authService.findById(req.user.id);
     if (!user) {
       throw new Error('User not found');

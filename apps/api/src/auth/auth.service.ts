@@ -140,4 +140,8 @@ export class AuthService {
       relations: ['guestProfile', 'employeeProfile'],
     });
   }
+
+  async findGuestById(id: string): Promise<GuestProfile | null> {
+    return this.guestProfileRepository.findOne({ where: { id } });
+  }
 }

@@ -47,6 +47,7 @@ export default function RoomsPage() {
         categoryId: '',
         condition: RoomCondition.CLEAN as RoomCondition,
         accessConfigId: 'none',
+        doorCode: '',
     });
 
     const fetchData = useCallback(async () => {
@@ -83,6 +84,7 @@ export default function RoomsPage() {
                 categoryId: parseInt(formData.categoryId),
                 condition: formData.condition,
                 accessConfigId: formData.accessConfigId && formData.accessConfigId !== 'none' ? parseInt(formData.accessConfigId) : undefined,
+                doorCode: formData.doorCode || undefined,
             });
             toast.success('Pokój został utworzony');
             setCreateDialogOpen(false);
@@ -100,12 +102,18 @@ export default function RoomsPage() {
         if (!selectedRoom) return;
         setIsSubmitting(true);
         try {
-            await roomsAPI.update(selectedRoom.id, {
+            const updateData: any = {
                 number: formData.number,
                 categoryId: parseInt(formData.categoryId),
                 condition: formData.condition,
                 accessConfigId: formData.accessConfigId && formData.accessConfigId !== 'none' ? parseInt(formData.accessConfigId) : null,
-            });
+            };
+
+            if (formData.doorCode) {
+                updateData.doorCode = formData.doorCode;
+            }
+
+            await roomsAPI.update(selectedRoom.id, updateData);
             toast.success('Pokój został zaktualizowany');
             setEditDialogOpen(false);
             resetForm();
@@ -152,6 +160,7 @@ export default function RoomsPage() {
             categoryId: categories[0]?.id.toString() || '',
             condition: RoomCondition.CLEAN,
             accessConfigId: 'none',
+            doorCode: '',
         });
         setSelectedRoom(null);
     };
@@ -163,6 +172,7 @@ export default function RoomsPage() {
             categoryId: room.category?.id.toString() || '',
             condition: room.condition,
             accessConfigId: room.accessConfig?.id.toString() || 'none',
+            doorCode: '',
         });
         setEditDialogOpen(true);
     };
@@ -358,6 +368,15 @@ export default function RoomsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="doorCode">Kod do drzwi (opcjonalnie)</Label>
+                            <Input
+                                id="doorCode"
+                                value={formData.doorCode}
+                                onChange={(e) => setFormData({ ...formData, doorCode: e.target.value })}
+                                placeholder="Pozostaw puste aby wygenerować losowo"
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -437,6 +456,15 @@ export default function RoomsPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-doorCode">Zmień Kod do drzwi</Label>
+                            <Input
+                                id="edit-doorCode"
+                                value={formData.doorCode}
+                                onChange={(e) => setFormData({ ...formData, doorCode: e.target.value })}
+                                placeholder="Wpisz aby zmienić (pozostaw puste aby zachować)"
+                            />
                         </div>
                     </div>
                     <DialogFooter>

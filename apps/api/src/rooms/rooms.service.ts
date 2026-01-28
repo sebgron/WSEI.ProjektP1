@@ -127,6 +127,7 @@ export class RoomsService {
     const room = this.roomsRepository.create({
       number: createRoomDto.number,
       condition: createRoomDto.condition || RoomCondition.CLEAN,
+      doorCode: createRoomDto.doorCode,
       category,
       accessConfig,
     });
@@ -143,6 +144,10 @@ export class RoomsService {
         throw new ConflictException(`Room with number ${updateRoomDto.number} already exists`);
       }
       room.number = updateRoomDto.number;
+    }
+
+    if (updateRoomDto.doorCode !== undefined) {
+      room.doorCode = updateRoomDto.doorCode || null;
     }
 
     if (updateRoomDto.condition) {

@@ -16,4 +16,8 @@ export class CreateRoomDto {
   @IsNumber()
   @IsOptional()
   accessConfigId?: number;
+
+  @IsString()
+  @IsOptional()
+  doorCode?: string;
 }

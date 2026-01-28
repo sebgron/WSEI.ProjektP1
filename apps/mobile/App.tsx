@@ -33,7 +33,7 @@ export default function App() {
 
     const source = useMemo(() => ({ uri: APP_URL }), []);
 
-    console.log("App Rendered timestamp:", Date.now());
+
 
     return (
         <View style={styles.container}>
